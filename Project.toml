@@ -1,0 +1,4 @@
+name = "QuantumTimeEvolution"
+uuid = "7373133c-a6f7-4e95-971a-e453f442ca60"
+authors = ["ttolppanen <taneli.tolppanen@gmail.com>"]
+version = "0.1.0"

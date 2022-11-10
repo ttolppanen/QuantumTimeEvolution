@@ -10,13 +10,18 @@ export krylovevolve
 export krylovevolve_bosehubbard
 
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real, k::Integer)
+    if k < 2
+        throw(ArgumentError("k <= 1"))
+    end
     out = [deepcopy(state0)]
     for i in dt:dt:t
         Hₖ, U = krylovsubspace(out[end], H, k)
         try
             push!(out, normalize(U * exp(-1im * dt * Hₖ)[:, 1]))
         catch error
-            throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, or there is no time evolution H * state0 = 0."))
+            if isa(error, ArgumentError)
+                throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, or there is no time evolution H * state0 = 0."))
+            end
         end
     end
     return out

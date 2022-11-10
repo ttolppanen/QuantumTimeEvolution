@@ -1,6 +1,5 @@
 module QuantumTimeEvolution
 
-
 using QuantumStates
 
 include("Exact.jl")

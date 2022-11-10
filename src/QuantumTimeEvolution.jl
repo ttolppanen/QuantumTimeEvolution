@@ -15,7 +15,7 @@ export krylovevolve_bosehubbard
 # t : total time the simulation needs to run;
 # dt : time step;
 
-function exactevolve(state0::AbstractVector, H::AbstractMatrix, t::Real, dt::Real)
+function exactevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real)
     if issparse(H)
         M = exp(-im * dt * Matrix(H))
     else
@@ -28,12 +28,12 @@ function exactevolve(state0::AbstractVector, H::AbstractMatrix, t::Real, dt::Rea
     return out
 end
 
-function exactevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector, dt::Real, t::Real; w = 1, U = 1, J = 1)
+function exactevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real; w = 1, U = 1, J = 1)
     H = bosehubbard(d, L; w = w, U = U, J = J)
     return exactevolve(state0, H, t, dt)
 end
 
-function krylovevolve(state0::AbstractVector, H::AbstractMatrix, t::Real, dt::Real, k::Integer)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real, k::Integer)
     out = [deepcopy(state0)]
     for i in dt:dt:t
         Hₖ, U = krylovsubspace(out[end], H, k)
@@ -46,12 +46,12 @@ function krylovevolve(state0::AbstractVector, H::AbstractMatrix, t::Real, dt::Re
     return out
 end
 
-function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector, dt::Real, t::Real, k::Integer; w = 1, U = 1, J = 1)
+function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; w = 1, U = 1, J = 1)
     H = bosehubbard(d, L; w = w, U = U, J = J)
     return krylovevolve(state0, H, t, dt, k)
 end
 
-function krylovsubspace(state::AbstractVector, H::AbstractMatrix, k::Integer)
+function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
     #doesnt check if HΨ = 0
     Hₖ = complex(zeros(k, k))
     U = complex(zeros(length(state), k))

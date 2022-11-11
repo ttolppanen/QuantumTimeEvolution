@@ -1,13 +1,13 @@
 using LinearAlgebra
 using QuantumOperators
 
+export krylovevolve
+export krylovevolve_bosehubbard
+
 # state0 : initial state;
 # H : the Hamiltonian;
 # t : total time the simulation needs to run;
 # dt : time step;
-
-export krylovevolve
-export krylovevolve_bosehubbard
 
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real, k::Integer)
     if k < 2

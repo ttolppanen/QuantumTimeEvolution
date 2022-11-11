@@ -1,13 +1,13 @@
 using SparseArrays
 using QuantumOperators
 
+export exactevolve
+export exactevolve_bosehubbard
+
 # state0 : initial state;
 # H : the Hamiltonian;
 # t : total time the simulation needs to run;
 # dt : time step;
-
-export exactevolve
-export exactevolve_bosehubbard
 
 function exactevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real)
     if issparse(H)

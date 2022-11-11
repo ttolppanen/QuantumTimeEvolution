@@ -16,7 +16,7 @@ end
     d = 3; L = 4
     dt = 0.1; t = 10.0
     state = zeroone(d, L)
-    result = exactevolve_bosehubbard(d, L, state, dt, t)
+    result = exactevolve_bosehubbard(d, L, state, dt, t; J=4.0)
     @test state == zeroone(d, L)
 
     ntot = nall(d, L)

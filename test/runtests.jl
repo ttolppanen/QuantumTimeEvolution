@@ -30,15 +30,14 @@ end
     
     n = singlesite_n(d, L, 1)
     res = [expval(s, n) for s in result]
-    pl = plot(0:dt:t, res)
-    saveplot(pl, "first site boson number")
+    pl = plot(0:dt:t, res, label="exact")
     
     k = 4
     result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
     n = singlesite_n(d, L, 1)
     res = [expval(s, n) for s in result]
-    pl = plot!(pl, 0:dt:t, res, linestyle=:dash)
-    saveplot(pl, "krylov")
+    pl = plot!(pl, 0:dt:t, res, linestyle=:dash, label="krylov")
+    saveplot(pl, "first site boson number")
     @test true
 end
 
@@ -53,6 +52,8 @@ end
     dt = 0.1; t = 1.0
     state = zeroone(d, L)
     result = exactevolve_bosehubbard(d, L, state, dt, t)
-    testtype(result[1])
-    testtype(result[5])
+    testtype(result[8])
+    k = 4
+    result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
+    testtype(result[6])
 end

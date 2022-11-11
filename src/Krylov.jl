@@ -9,7 +9,7 @@ export krylovevolve_bosehubbard
 # t : total time the simulation needs to run;
 # dt : time step;
 
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real, k::Integer)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer)
     if k < 2
         throw(ArgumentError("k <= 1"))
     end
@@ -29,7 +29,7 @@ end
 
 function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #key value arguments for bosehubbard
     H = bosehubbard(d, L; kwargs...) #kwargs can be {w, U, J}
-    return krylovevolve(state0, H, t, dt, k)
+    return krylovevolve(state0, H, dt, t, k)
 end
 
 function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)

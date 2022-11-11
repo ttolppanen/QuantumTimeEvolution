@@ -9,7 +9,7 @@ export exactevolve_bosehubbard
 # t : total time the simulation needs to run;
 # dt : time step;
 
-function exactevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, t::Real, dt::Real)
+function exactevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real)
     if issparse(H)
         U = exp(-im * dt * Matrix(H))
     else
@@ -24,5 +24,5 @@ end
 
 function exactevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real; kwargs...)#key word arguments for bosehubbard
     H = bosehubbard(d, L; kwargs...) #kwargs can be {w, U, J}
-    return exactevolve(state0, H, t, dt)
+    return exactevolve(state0, H, dt, t)
 end

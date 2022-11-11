@@ -43,7 +43,7 @@ end
 end
 
 function testtype(state)
-    @test isa(state, AbstractVector)
+    @test isa(state, AbstractVector{<:Number})
     @test issparse(state)
     @test typeof(state) == typeof(complex(state))
 end

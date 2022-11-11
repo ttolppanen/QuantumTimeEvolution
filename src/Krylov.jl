@@ -16,7 +16,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     out = [deepcopy(state0)]
     for i in dt:dt:t
         Hₖ, U = krylovsubspace(out[end], H, k)
-        try
+        try #This is just to get a more descriptive error message
             push!(out, normalize(U * exp(-1im * dt * Hₖ)[:, 1]))
         catch error
             if isa(error, ArgumentError)
@@ -27,8 +27,8 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return out
 end
 
-function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; w = 1, U = 1, J = 1)
-    H = bosehubbard(d, L; w = w, U = U, J = J)
+function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #key value arguments for bosehubbard
+    H = bosehubbard(d, L; kwargs...) #kwargs can be {w, U, J}
     return krylovevolve(state0, H, t, dt, k)
 end
 

@@ -226,7 +226,7 @@ version = "0.1.1"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]
-git-tree-sha1 = "170c3f4893bf7f8428c33a4109cbb639800b5566"
+git-tree-sha1 = "30f2cfc8ca53a74c6ec0b245ac0b052ac67377ef"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumStates.git"
 uuid = "0a1581c1-ab82-4660-a1be-26f7b3483457"

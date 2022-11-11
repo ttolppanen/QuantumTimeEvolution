@@ -2,6 +2,11 @@ function splitkwargs(kwargs, args...)
     for f in args
         isa(f, Function) ? nothing : throw(ArgumentError("args are not functions"))
     end
+    allkwargs = []
+    for f in args
+        fkwargs = Base.kwarg_decl(first(methods((f))))
+        length(fkwargs) == 0 ? throw(ArgumentError(String(Symbol(f)) * " has no key-word arguments")) : push!(allkwargs, fkwargs)
+    end
     allkwargs = [Base.kwarg_decl(first(methods((f)))) for f in args]
     @show allkwargs
     wrongKeywordArguments = setdiff(keys(kwargs), union(allkwargs...))

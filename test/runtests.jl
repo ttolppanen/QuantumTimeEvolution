@@ -5,18 +5,14 @@ using LinearAlgebra
 using QuantumTimeEvolution.QuantumStates
 using QuantumTimeEvolution.QuantumOperators
 
-function waitforkeypress()
-    println("press enter here to continue")
-    readline()
-end
 function saveplot(pl, name)
     savefig(pl, "./plots/" * name * ".png")
 end
 @testset "Plots" begin
     d = 3; L = 4
-    dt = 0.1; t = 10.0
+    dt = 0.1; t = 5.0
     state = zeroone(d, L)
-    result = exactevolve_bosehubbard(d, L, state, dt, t; J=4.0)
+    result = exactevolve_bosehubbard(d, L, state, dt, t)
     @test state == zeroone(d, L)
 
     ntot = nall(d, L)
@@ -56,4 +52,11 @@ end
     k = 4
     result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
     testtype(result[6])
+end
+
+@test begin
+    d = 3; L = 4
+    dt = 0.1; t = 5
+    mps0 = zeroonemps(d, L)[1]
+    mpsevolve_bosehubbard(mps0, dt, t)
 end

@@ -1,5 +1,7 @@
 using ITensors
 
+include("Utility/SplitKwargs.jl")
+
 export mpsevolve
 export mpsevolve_bosehubbard
 
@@ -17,8 +19,8 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, t::Real, dt::Real; kwargs.
     return out
 end
 
-function mpsevolve_bosehubbard(mps0::MPS, t::Real, dt::Real; kwargs...) #key-value arguments for bosehubbard and apply
-    bosehubbardkwargs, applykwargs = splitkwargs(kwargs, [:w, :U, :J], [:cutoff, :maxdim])
+function mpsevolve_bosehubbard(mps0::MPS, dt::Real, t::Real; kwargs...) #key-value arguments for bosehubbard and apply
+    bosehubbardkwargs, applykwargs = splitkwargs(kwargs, bosehubbardgates, ITensors.apply)
     gates = bosehubbardgates(siteinds(mps0), dt; bosehubbardkwargs)
 end
 
@@ -42,29 +44,3 @@ function bosehubbardgates(indices, dt; w=1.0, U=1.0, J=1.0)
     append!(out, reverse(out))
     return out
 end
-
-#=
-function getkwargs(f::Function)
-    m = code_typed(f)
-    args = m[1].first.slotnames
-    nonkwargs = Base.method_argnames(m[1].first.parent.def)
-    return setdiff(args, nonkwargs)
-end
-
-function splitkwargs(kwargs, args...)
-    isa([args...], Vector{Function}) ? nothing : throw(ArgumentError)
-    allkwargs = [getkwargs(f) for f in args]
-    wrongKeywordArguments = setdiff(keys(kwargs), union(allkwargs...))
-    if length(wrongKeywordArguments) != 0 
-        throw(UndefKeywordError(wrongKeywordArguments[1]))
-    end
-    out = []
-    for kwarg in allkwargs
-        push!(out, (;[(key, kwargs[key]) for key in intersect(keys(kwargs), kwarg)]...))
-    end
-    if length(out) == 1
-        return out[1]
-    end
-    return out
-end
-=#

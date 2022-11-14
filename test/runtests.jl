@@ -17,7 +17,7 @@ end
     @test state == zeroone(d, L)
 
     ntot = nall(d, L)
-    res = [expval(s, ntot) for s in result]
+    res = expval(result, ntot)
     pl = plot(0:dt:t, res, ylims=(1.8, 2.2))
     saveplot(pl, "total boson number")
 
@@ -26,13 +26,13 @@ end
     saveplot(pl, "state norm")
     
     n = singlesite_n(d, L, 1)
-    res = [expval(s, n) for s in result]
+    res = expval(result, n)
     pl = plot(0:dt:t, res, label="exact")
     
     k = 4
     result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
     n = singlesite_n(d, L, 1)
-    res = [expval(s, n) for s in result]
+    res = expval(result, n)
     pl = plot!(pl, 0:dt:t, res, linestyle=:dash, label="krylov")
 
     indices = siteinds("Boson", L; dim = d)
@@ -64,7 +64,7 @@ end
 @test begin
     d = 3; L = 4
     dt = 0.1; t = 5
-    mps0 = zeroonemps(d, L)[1]
+    mps0 = zeroonemps(d, L)
     mpsevolve_bosehubbard(mps0, dt, t)
     true
 end

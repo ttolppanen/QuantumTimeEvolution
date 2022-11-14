@@ -22,7 +22,7 @@ function exactevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numbe
     return out
 end
 
-function exactevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real; kwargs...)#key-value arguments for bosehubbard
+function exactevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real; kwargs...)#keyword arguments for bosehubbard
     H = bosehubbard(d, L; kwargs...) #kwargs can be {w, U, J}
     return exactevolve(state0, H, dt, t)
 end

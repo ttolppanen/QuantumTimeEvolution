@@ -27,7 +27,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return out
 end
 
-function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #key value arguments for bosehubbard
+function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #keyword arguments for bosehubbard
     H = bosehubbard(d, L; kwargs...) #kwargs can be {w, U, J}
     return krylovevolve(state0, H, dt, t, k)
 end

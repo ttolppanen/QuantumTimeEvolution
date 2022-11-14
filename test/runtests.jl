@@ -2,6 +2,7 @@ using QuantumTimeEvolution, Test
 using Plots
 using SparseArrays
 using LinearAlgebra
+using ITensors
 using QuantumTimeEvolution.QuantumStates
 using QuantumTimeEvolution.QuantumOperators
 
@@ -33,6 +34,12 @@ end
     n = singlesite_n(d, L, 1)
     res = [expval(s, n) for s in result]
     pl = plot!(pl, 0:dt:t, res, linestyle=:dash, label="krylov")
+
+    indices = siteinds("Boson", L; dim = d)
+    mps0 = MPS(Vector(state), indices)
+    result = mpsevolve_bosehubbard(mps0, dt, t)
+    res = expval(result, "N"; sites=L)
+    pl = plot!(pl, 0:dt:t, res, linestyle=:dashdot, label="MPS")
     saveplot(pl, "first site boson number")
     @test true
 end
@@ -59,4 +66,5 @@ end
     dt = 0.1; t = 5
     mps0 = zeroonemps(d, L)[1]
     mpsevolve_bosehubbard(mps0, dt, t)
+    true
 end

@@ -10,7 +10,7 @@ export mpsevolve_bosehubbard
 # t : total time the simulation needs to run;
 # dt : time step;
 
-function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; kwargs...) #key-value arguments for apply
+function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; kwargs...) #keyword arguments for ITensors.apply
     out = [deepcopy(mps0)]
     for _ in dt:dt:t
         push!(out, apply(gates, out[end]; normalize = true, kwargs...))
@@ -18,10 +18,10 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; kwargs.
     return out
 end
 
-function mpsevolve_bosehubbard(mps0::MPS, dt::Real, t::Real; kwargs...) #key-value arguments for bosehubbard and apply
+function mpsevolve_bosehubbard(mps0::MPS, dt::Real, t::Real; kwargs...) #keyword arguments for bosehubbard and ITensors.apply
     bosehubbardkwargs, applykwargs = splitkwargs(kwargs, [:w, :U, :J], [:cutoff, :maxdim, :mindim, :normalize, :method])
-    gates = bosehubbardgates(siteinds(mps0), dt; bosehubbardkwargs)
-    return mpsevolve(mps0, gates, dt, t; applykwargs)
+    gates = bosehubbardgates(siteinds(mps0), dt; bosehubbardkwargs...)
+    return mpsevolve(mps0, gates, dt, t; applykwargs...)
 end
 
 function bosehubbardgates(indices, dt; w=1.0, U=1.0, J=1.0)

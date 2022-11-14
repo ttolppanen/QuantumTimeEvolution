@@ -217,8 +217,8 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
-deps = ["LinearAlgebra", "QuantumStates", "SparseArrays"]
-git-tree-sha1 = "408888d81ba3d5fdef1262feec7e42c430c749ea"
+deps = ["ITensors", "LinearAlgebra", "QuantumStates", "SparseArrays"]
+git-tree-sha1 = "5908b05395e7d31fd6ca2a5b4d2d87d26327b05a"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumOperators.git"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
@@ -226,7 +226,7 @@ version = "0.1.1"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]
-git-tree-sha1 = "988d1f98b3ab77d4dfadb6a33c73b801ed39dadc"
+git-tree-sha1 = "c2edb1d7a386e033a7fa5029430dfe0eb970b16b"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumStates.git"
 uuid = "0a1581c1-ab82-4660-a1be-26f7b3483457"

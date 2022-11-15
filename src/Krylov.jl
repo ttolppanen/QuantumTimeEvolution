@@ -8,8 +8,9 @@ export krylovevolve_bosehubbard
 # H : the Hamiltonian;
 # t : total time the simulation needs to run;
 # dt : time step;
+# effect! : function with one argument, the state; something to do to the state after each timestep
 
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; effect! = nothing)
     if k < 2
         throw(ArgumentError("k <= 1"))
     end
@@ -23,13 +24,15 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
                 throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, or there is no time evolution H * state0 = 0."))
             end
         end
+        !isa(effect!, Nothing) ? effect!(out[end]) : nothing
     end
     return out
 end
 
-function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #keyword arguments for bosehubbard
-    H = bosehubbard(d, L; kwargs...) #kwargs can be {w, U, J}
-    return krylovevolve(state0, H, dt, t, k)
+function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #keyword arguments for bosehubbard, krylovevolve
+    bhkwargs, kekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!]) #bhkwargs ∈  {w, U, J}, kekwargs ∈ {effect!}
+    H = bosehubbard(d, L; bhkwargs...)
+    return krylovevolve(state0, H, dt, t, k; kekwargs...)
 end
 
 function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)

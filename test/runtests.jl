@@ -9,6 +9,9 @@ using QuantumTimeEvolution.QuantumOperators
 function saveplot(pl, name)
     savefig(pl, "./plots/" * name * ".png")
 end
+
+include("measurementtest.jl")
+
 @testset "Plots" begin
     d = 3; L = 4
     dt = 0.1; t = 5.0
@@ -59,12 +62,4 @@ end
     k = 4
     result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
     testtype(result[6])
-end
-
-@test begin
-    d = 3; L = 4
-    dt = 0.1; t = 5
-    mps0 = zeroonemps(d, L)
-    mpsevolve_bosehubbard(mps0, dt, t)
-    true
 end

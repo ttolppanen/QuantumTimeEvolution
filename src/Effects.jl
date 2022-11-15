@@ -1,6 +1,8 @@
 using QuantumOperators
 using ITensors
 
+export measuresitesrandomly!
+
 StateType = Union{AbstractVector{<:Number}, MPS}
 MsrOpType = Union{MsrOpMatrixType, MsrOpITensorType}
 

@@ -218,7 +218,7 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
 deps = ["ITensors", "KrylovKit", "LinearAlgebra", "QuantumStates", "SparseArrays"]
-git-tree-sha1 = "cad1f83360eabbca71b3e525f788825b27aee2ad"
+git-tree-sha1 = "d61fc86ac63ae41ef369db8ebcdc0431bd98cab0"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumOperators.git"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"

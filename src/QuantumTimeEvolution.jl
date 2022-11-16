@@ -6,10 +6,6 @@ include("Exact.jl")
 include("Krylov.jl")
 include("MPS.jl")
 include("Effects.jl")
-
-# state0 : initial state;
-# H : the Hamiltonian;
-# t : total time the simulation needs to run;
-# dt : time step;
+include("Trajectories.jl")
 
 end # module

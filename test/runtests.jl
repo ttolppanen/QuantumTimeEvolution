@@ -21,11 +21,11 @@ include("measurementtest.jl")
 
     ntot = nall(d, L)
     res = expval(result, ntot)
-    pl = plot(0:dt:t, res, ylims=(1.8, 2.2))
+    pl = plot(0:dt:t, res, ylims=(1.8, 2.2), label="exact")
     saveplot(pl, "total boson number")
 
     res = [norm(s) for s in result]
-    pl = plot(0:dt:t, res, ylims=(0.9, 1.1))
+    pl = plot(0:dt:t, res, ylims=(0.9, 1.1), label="exact")
     saveplot(pl, "state norm")
     
     n = singlesite_n(d, L, 1)

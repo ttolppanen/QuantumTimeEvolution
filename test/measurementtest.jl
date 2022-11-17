@@ -8,6 +8,7 @@ using Plots
     d = 3; L = 3
     dt = 0.1; t = 5
     msr_prob = 0.1
+    rng_seed = 5
     state0 = zeroone(d, L)
     mps0 = zeroonemps(d, L)
     op_to_msr = nop(d)
@@ -15,11 +16,11 @@ using Plots
     msrop_tensor = measurementoperators(op_to_msr, siteinds(mps0))
     meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
     meffect_t!(state) = measuresitesrandomly!(state, msrop_tensor, msr_prob)
-    Random.seed!(2) #Makes the rng the same
+    Random.seed!(rng_seed) #Makes the rng the same
     r_exact = exactevolve_bosehubbard(d, L, state0, dt, t; effect! = meffect!)
-    Random.seed!(2) #Makes the rng the same
+    Random.seed!(rng_seed) #Makes the rng the same
     r_krylov = krylovevolve_bosehubbard(d, L, state0, dt, t, 5; effect! = meffect!)
-    Random.seed!(2) #Makes the rng the same
+    Random.seed!(rng_seed) #Makes the rng the same
     r_mps = mpsevolve_bosehubbard(mps0, dt, t; effect! = meffect_t!)
     plot_x = 0:dt:t
     @testset "Normalization" begin
@@ -58,10 +59,14 @@ function calc_ent_traj(msr_prob)
     return 0:dt:t, res
 end
 @testset "Trajectories" begin
+    rng_seed = 3
+    Random.seed!(rng_seed) #Makes the rng the same
     t, res = calc_ent_traj(0.01)
     pl = plot(t, res, label="0.01")
+    Random.seed!(rng_seed) #Makes the rng the same
     t, res = calc_ent_traj(0.15)
     plot!(pl, t, res, label="0.15")
+    Random.seed!(rng_seed) #Makes the rng the same
     t, res = calc_ent_traj(0.3)
     plot!(pl, t, res, label="0.3")
     saveplot(pl, "traj_entanglement")

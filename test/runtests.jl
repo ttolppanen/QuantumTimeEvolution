@@ -13,35 +13,35 @@ end
 include("measurementtest.jl")
 
 @testset "Plots" begin
-    d = 3; L = 4
-    dt = 0.1; t = 5.0
-    state = zeroone(d, L)
+    d = 3; L = 5
+    dt = 0.01; t = 5.0
+    center_site = 3
+    state = singleone(d, L, center_site)
     result = exactevolve_bosehubbard(d, L, state, dt, t)
-    @test state == zeroone(d, L)
+    @test state == singleone(d, L, center_site)
 
     ntot = nall(d, L)
     res = expval(result, ntot)
-    pl = plot(0:dt:t, res, ylims=(1.8, 2.2), label="exact")
+    pl = plot(0:dt:t, res, ylims=(0.99, 1.01), label="exact")
     saveplot(pl, "total boson number")
 
     res = [norm(s) for s in result]
-    pl = plot(0:dt:t, res, ylims=(0.9, 1.1), label="exact")
+    pl = plot(0:dt:t, res, ylims=(0.99, 1.01), label="exact")
     saveplot(pl, "state norm")
     
-    n = singlesite_n(d, L, 1)
+    n = singlesite_n(d, L, center_site)
     res = expval(result, n)
     pl = plot(0:dt:t, res, label="exact")
     
     k = 4
     result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
-    n = singlesite_n(d, L, 1)
     res = expval(result, n)
     pl = plot!(pl, 0:dt:t, res, linestyle=:dash, label="krylov")
 
     indices = siteinds("Boson", L; dim = d)
     mps0 = MPS(Vector(state), indices)
     result = mpsevolve_bosehubbard(mps0, dt, t)
-    res = expval(result, "N"; sites=L)
+    res = expval(result, "N"; sites=center_site)
     pl = plot!(pl, 0:dt:t, res, linestyle=:dashdot, label="MPS")
     saveplot(pl, "first site boson number")
     @test true

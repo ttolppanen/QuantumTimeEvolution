@@ -10,6 +10,7 @@ function saveplot(pl, name)
     savefig(pl, "./plots/" * name * ".png")
 end
 
-include("twoqubitstest.jl")
-include("measurementtest.jl")
-include("typetest.jl")
+include("./tests/twoqubitstest.jl")
+include("./tests/bosonstacktest.jl")
+include("./tests/measurementtest.jl")
+include("./tests/typetest.jl")

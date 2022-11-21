@@ -4,6 +4,8 @@ using ITensors
 using Random
 using Plots
 
+@testset "Measurements" begin
+    
 @testset "measuresitesrandomly!" begin
     d = 3; L = 3
     dt = 0.1; t = 5
@@ -24,11 +26,9 @@ using Plots
     r_mps = mpsevolve_bosehubbard(mps0, dt, t; effect! = meffect_t!)
     plot_x = 0:dt:t
     @testset "Normalization" begin
-        pl = plot(plot_x, [norm(s) for s in r_exact], ylims=(0.99, 1.01), label="exact")
-        plot!(pl, plot_x, [norm(s) for s in r_krylov], label="krylov")
-        plot!(pl, plot_x, [norm(s) for s in r_mps], label="mps")
-        saveplot(pl, "msr_norm")
-        @test true
+        @test all([norm(state) ≈ 1.0 for state in r_exact]) #norm should be one
+        @test all([norm(state) ≈ 1.0 for state in r_krylov])
+        @test all([norm(state) ≈ 1.0 for state in r_mps])
     end
     @testset "First Site Boson Number" begin
         #with mps, the first site is the last site?
@@ -72,3 +72,5 @@ end
     saveplot(pl, "traj_entanglement")
     @test true
 end
+
+end # testset

@@ -11,12 +11,15 @@ export krylovevolve
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # savelast : set true if you only need the last value of the time-evolution
 
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; effect! = nothing, savelast::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; kwargs...)
+    H_k, U = krylov_prealloc_Hk_U(length(state0), k)
+    return krylovevolve(state0, H, dt, t, k, H_k, U; kwargs...)
+end
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}; effect! = nothing, savelast::Bool = false)
     if k < 2
         throw(ArgumentError("k <= 1"))
     end
     out = [deepcopy(state0)]
-    H_k, U = krylov_prealloc_Hk_U(length(state0), k)
     for _ in dt:dt:t
         krylovsubspace!(out[end], H, k, H_k, U) # returns H_k, U
         try #This is just to get a more descriptive error message

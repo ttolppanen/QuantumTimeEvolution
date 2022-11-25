@@ -14,6 +14,7 @@
     state0 = zeroone(d, L)
     mps0 = zeroonemps(d, L)
     H = bosehubbard(d, L)
+    U_op = exp(-im * dt * Matrix(H))
     gates = bosehubbardgates(siteinds(mps0), dt)
     op_to_msr = nop(d)
     msrop = measurementoperators(op_to_msr, L)
@@ -21,7 +22,7 @@
     meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
     meffect_t!(state) = measuresitesrandomly!(state, msrop_tensor, msr_prob)
     Random.seed!(rng_seed) #Makes the rng the same
-    r_exact = exactevolve(state0, H, dt, t; effect! = meffect!)
+    r_exact = exactevolve(state0, U_op, dt, t; effect! = meffect!)
     Random.seed!(rng_seed) #Makes the rng the same
     r_krylov = krylovevolve(state0, H, dt, t, 5; effect! = meffect!)
     Random.seed!(rng_seed) #Makes the rng the same

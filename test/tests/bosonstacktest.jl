@@ -15,9 +15,10 @@ state0 = bosonstack(N, L, target)
 indices = siteinds("Boson", L; dim = d)
 mps0 = MPS(Vector(state0), indices)
 H = bosehubbard(d, L; U, J)
+U_op = exp(-im * dt * Matrix(H))
 gates = bosehubbardgates(siteinds(mps0), dt; U, J)
 
-r_exact = exactevolve(state0, H, dt, t)
+r_exact = exactevolve(state0, U_op, dt, t)
 r_krylov = krylovevolve(state0, H, dt, t, 10)
 r_mps = mpsevolve(mps0, gates, dt, t)
 

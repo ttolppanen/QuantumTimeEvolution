@@ -14,8 +14,9 @@ end
     indices = siteinds("Boson", L; dim = d)
     mps0 = MPS(Vector(state), indices)
     H = bosehubbard(d, L)
+    U_op = exp(-im * dt * Matrix(H))
     gates = bosehubbardgates(siteinds(mps0), dt)
-    result = exactevolve(state, H, dt, t)
+    result = exactevolve(state, U_op, dt, t)
     testtype(result[8])
     k = 4
     result = krylovevolve(state, H, dt, t, k)

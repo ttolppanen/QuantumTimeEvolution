@@ -3,6 +3,7 @@ module QuantumTimeEvolution
 using SparseArrays
 using LinearAlgebra
 using ITensors
+using StaticArrays
 using QuantumOperators
 
 #internal

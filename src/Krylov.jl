@@ -1,5 +1,6 @@
 # using LinearAlgebra
 # using QuantumOperators
+# using StaticArrays
 
 export krylovevolve
 export krylovevolve_bosehubbard
@@ -44,7 +45,7 @@ end
 
 function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
     #doesnt check if HΨ = 0
-    Hₖ = complex(zeros(k, k))
+    Hₖ = complex(@MMatrix zeros(k, k))
     U = complex(zeros(length(state), k))
 
     U[:, 1] = normalize(state)

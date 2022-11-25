@@ -9,7 +9,7 @@ function lasttest(full_evolution, last_evolution)
 end
 
 d = 4; L = 4
-dt = 0.1; t = 2.0
+dt = 0.1; t = 1 + rand()
 state0 = onezero(d, L)
 mps0 = onezeromps(d, L)
 

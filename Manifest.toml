@@ -20,9 +20,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[deps.BitIntegers]]
 deps = ["Random"]
-git-tree-sha1 = "5a814467bda636f3dde5c4ef83c30dd0a19928e0"
+git-tree-sha1 = "fc54d5837033a170f3bad307f993e156eefc345f"
 uuid = "c3b6d118-76ef-56ca-8cc7-ebb389d030a1"
-version = "0.2.6"
+version = "0.2.7"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -198,9 +198,9 @@ version = "1.1.19+0"
 
 [[deps.PackageCompiler]]
 deps = ["Artifacts", "LazyArtifacts", "Libdl", "Pkg", "Printf", "RelocatableFolders", "TOML", "UUIDs"]
-git-tree-sha1 = "f31ea705915b4e16e8104727ebd99e0c3993478d"
+git-tree-sha1 = "4a34377fc0f0dd5ad63ed194fbac52aec1944de0"
 uuid = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
-version = "2.1.0"
+version = "2.1.1"
 
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
@@ -217,20 +217,20 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
-deps = ["ITensors", "KrylovKit", "LinearAlgebra", "QuantumStates", "SparseArrays"]
-git-tree-sha1 = "3d28a3b90c4b02c6845985875e128a71f4f5ea91"
+deps = ["ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "0f14a3d1d25758c1324f6b91e0ca341286be5781"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumOperators.git"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.4"
+version = "0.1.5"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]
-git-tree-sha1 = "cc25e176f990bd22742a3a38a18390ad030e5faf"
+git-tree-sha1 = "e7f1383f704da6e475240eec490a5c558860ee45"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumStates.git"
 uuid = "0a1581c1-ab82-4660-a1be-26f7b3483457"
-version = "0.1.0"
+version = "0.1.2"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
@@ -289,9 +289,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "StaticArraysCore", "Statistics"]
-git-tree-sha1 = "f86b3a049e5d05227b10e15dbb315c5b90f14988"
+git-tree-sha1 = "4e051b85454b4e4f66e6a6b7bdc452ad9da3dcf6"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.5.9"
+version = "1.5.10"
 
 [[deps.StaticArraysCore]]
 git-tree-sha1 = "6b7ba252635a5eff6a0b0664a41ee140a1c9e72a"

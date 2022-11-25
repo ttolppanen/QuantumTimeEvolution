@@ -17,13 +17,14 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
         throw(ArgumentError("k <= 1"))
     end
     out = [deepcopy(state0)]
+    H_k, U = krylov_prealloc_Hk_U(length(state0), k)
     for _ in dt:dt:t
-        Hₖ, U = krylovsubspace(out[end], H, k)
+        H_k, U = krylovsubspace(out[end], H, k, H_k, U)
         try #This is just to get a more descriptive error message
             if savelast
-                out[1] .= normalize(U * exp(-1im * dt * Hₖ)[:, 1])
+                out[1] .= normalize(U * exp(-1im * dt * H_k)[:, 1])
             else
-                push!(out, normalize(U * exp(-1im * dt * Hₖ)[:, 1]))
+                push!(out, normalize(U * exp(-1im * dt * H_k)[:, 1]))
             end
         catch error
             if isa(error, ArgumentError)
@@ -44,22 +45,32 @@ function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector
 end
 
 function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
-    #doesnt check if HΨ = 0
-    Hₖ = complex(@MMatrix zeros(k, k))
-    U = complex(zeros(length(state), k))
+    H_k, U = krylov_prealloc_Hk_U(length(state0), k)
+    krylovsubspace(state, H, k, H_k, U)
+end
 
-    U[:, 1] = normalize(state)
-    z = H * U[:, 1]
+#here H_k and U are pre-allocated
+function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number})
+    #doesnt check if HΨ = 0
+    @views U[:, 1] = normalize(state)
+    @views z = H * U[:, 1]
     for i in 1:k-1
-        a = U[:, i]' * z
-        z .-= a * U[:, i]
+        @views a = U[:, i]' * z
+        @views z .-= a * U[:, i]
         b = norm(z)
-        Hₖ[i, i] = a
-        Hₖ[i, i + 1] = b
-        Hₖ[i + 1, i] = b
-        U[:, i + 1] .= z / b
-        z = H * U[:, i + 1] .- b * U[:, i]
+        H_k[i, i] = a
+        H_k[i, i + 1] = b
+        H_k[i + 1, i] = b
+        @views U[:, i + 1] .= z / b
+        @views z = H * U[:, i + 1] .- b * U[:, i]
     end
-    Hₖ[k, k] = U[:, k]' * z
-    return Hₖ, U
+    H_k[k, k] = U[:, k]' * z
+    return H_k, U
+end
+
+# d : statevector dimension;
+function krylov_prealloc_Hk_U(d::Integer, k::Integer)
+    H_k = complex(@MMatrix zeros(k, k))
+    U = complex(zeros(d, k))
+    return H_k, U
 end

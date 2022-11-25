@@ -11,8 +11,3 @@ function solvetrajectories(f::Function, traj::Integer)
     end
     return out
 end
-
-function measured_bh(mps0::MPS, dt::Real, t::Real; traj::Integer = 1, effect!::Function, kwargs...) #keyword arguments for bosehubbard, mpsevolve_bosehubbard
-    f() = mpsevolve_bosehubbard(mps0::MPS, dt::Real, t::Real; effect!, kwargs...)
-    return solvetrajectories(f, traj)
-end

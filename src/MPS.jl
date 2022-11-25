@@ -2,7 +2,7 @@
 # include("Utility/SplitKwargs.jl")
 
 export mpsevolve
-export mpsevolve_bosehubbard
+export bosehubbardgates
 
 # mps0 : initial state;
 # H : the Hamiltonian;
@@ -22,13 +22,6 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect!
         !isa(effect!, Nothing) ? effect!(out[end]) : nothing
     end
     return out
-end
-
-function mpsevolve_bosehubbard(mps0::MPS, dt::Real, t::Real; kwargs...) #keyword arguments for bosehubbard, mpsevolve
-    #bhkwargs ∈  {w, U, J}, mekwargs ∈ {effect!, savelast, cutoff, maxdim, mindim, normalize, method} where everything after effect! is for ITensors.apply
-    bhkwargs, mekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!, :savelast, :cutoff, :maxdim, :mindim, :normalize, :method]) 
-    gates = bosehubbardgates(siteinds(mps0), dt; bhkwargs...)
-    return mpsevolve(mps0, gates, dt, t; mekwargs...)
 end
 
 function bosehubbardgates(indices, dt; w=1.0, U=1.0, J=1.0)

@@ -12,9 +12,11 @@ one_boson_site = 1
 state = singleone(d, L, one_boson_site)
 indices = siteinds("Boson", L; dim = d)
 mps0 = MPS(Vector(state), indices)
-r_exact = exactevolve_bosehubbard(d, L, state, dt, t)
-r_krylov = krylovevolve_bosehubbard(d, L, state, dt, t, k)
-r_mps = mpsevolve_bosehubbard(mps0, dt, t)
+H = bosehubbard(d, L)
+gates = bosehubbardgates(siteinds(mps0), dt)
+r_exact = exactevolve(state, H, dt, t)
+r_krylov = krylovevolve(state, H, dt, t, k)
+r_mps = mpsevolve(mps0, gates, dt, t)
 r_all = [r_exact, r_krylov, r_mps]
 
 @testset "Initial State Unaffected" begin

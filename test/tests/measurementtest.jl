@@ -13,17 +13,19 @@
     rng_seed = 5
     state0 = zeroone(d, L)
     mps0 = zeroonemps(d, L)
+    H = bosehubbard(d, L)
+    gates = bosehubbardgates(siteinds(mps0), dt)
     op_to_msr = nop(d)
     msrop = measurementoperators(op_to_msr, L)
     msrop_tensor = measurementoperators(op_to_msr, siteinds(mps0))
     meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
     meffect_t!(state) = measuresitesrandomly!(state, msrop_tensor, msr_prob)
     Random.seed!(rng_seed) #Makes the rng the same
-    r_exact = exactevolve_bosehubbard(d, L, state0, dt, t; effect! = meffect!)
+    r_exact = exactevolve(state0, H, dt, t; effect! = meffect!)
     Random.seed!(rng_seed) #Makes the rng the same
-    r_krylov = krylovevolve_bosehubbard(d, L, state0, dt, t, 5; effect! = meffect!)
+    r_krylov = krylovevolve(state0, H, dt, t, 5; effect! = meffect!)
     Random.seed!(rng_seed) #Makes the rng the same
-    r_mps = mpsevolve_bosehubbard(mps0, dt, t; effect! = meffect_t!)
+    r_mps = mpsevolve(mps0, gates, dt, t; effect! = meffect_t!)
     plot_x = 0:dt:t
     @testset "Normalization" begin
         @test all([norm(state) ≈ 1.0 for state in r_exact]) #norm should be one
@@ -51,10 +53,12 @@ function calc_ent_traj(msr_prob)
     d = 2; L = 4
     dt = 0.1; t = 5
     mps0 = zeroonemps(d, L)
+    gates = bosehubbardgates(siteinds(mps0), dt)
     op_to_msr = nop(d)
     msrop = measurementoperators(op_to_msr, siteinds(mps0))
     meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
-    result = measured_bh(mps0, dt, t; traj = 30, effect! = meffect!, cutoff = 1E-8)
+    r_f() = mpsevolve(mps0, gates, dt, t; effect! = meffect!, cutoff = 1E-8)
+    result = solvetrajectories(r_f, 30)
     res = trajmean(result, state -> entanglement(state, 2))
     return 0:dt:t, res
 end

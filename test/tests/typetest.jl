@@ -13,11 +13,13 @@ end
     state = zeroone(d, L)
     indices = siteinds("Boson", L; dim = d)
     mps0 = MPS(Vector(state), indices)
-    result = exactevolve_bosehubbard(d, L, state, dt, t)
+    H = bosehubbard(d, L)
+    gates = bosehubbardgates(siteinds(mps0), dt)
+    result = exactevolve(state, H, dt, t)
     testtype(result[8])
     k = 4
-    result = krylovevolve_bosehubbard(d, L, state, dt, t, k)
+    result = krylovevolve(state, H, dt, t, k)
     testtype(result[6])
-    result = mpsevolve_bosehubbard(mps0, dt, t)
+    result = mpsevolve(mps0, gates, dt, t)
     @test isa(result, Vector{MPS})
 end

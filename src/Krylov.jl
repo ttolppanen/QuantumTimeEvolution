@@ -3,7 +3,6 @@
 # using StaticArrays
 
 export krylovevolve
-export krylovevolve_bosehubbard
 
 # state0 : initial state;
 # H : the Hamiltonian;
@@ -19,10 +18,10 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     out = [deepcopy(state0)]
     H_k, U = krylov_prealloc_Hk_U(length(state0), k)
     for _ in dt:dt:t
-        H_k, U = krylovsubspace(out[end], H, k, H_k, U)
+        krylovsubspace!(out[end], H, k, H_k, U) # returns H_k, U
         try #This is just to get a more descriptive error message
             if savelast
-                out[1] .= normalize(U * exp(-1im * dt * H_k)[:, 1])
+                out[1] .= sparse(normalize(U * exp(-1im * dt * H_k)[:, 1]))
             else
                 push!(out, normalize(U * exp(-1im * dt * H_k)[:, 1]))
             end
@@ -38,21 +37,16 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return out
 end
 
-function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #keyword arguments for bosehubbard, krylovevolve
-    bhkwargs, kekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!, :savelast]) #bhkwargs ∈  {w, U, J}, kekwargs ∈ {effect!, savelast}
-    H = bosehubbard(d, L; bhkwargs...)
-    return krylovevolve(state0, H, dt, t, k; kekwargs...)
-end
-
 function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
     H_k, U = krylov_prealloc_Hk_U(length(state0), k)
-    krylovsubspace(state, H, k, H_k, U)
+    krylovsubspace!(state, H, k, H_k, U)
+    return H_k, U
 end
 
 #here H_k and U are pre-allocated
-function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number})
+function krylovsubspace!(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number})
     #doesnt check if HΨ = 0
-    @views U[:, 1] = normalize(state)
+    @views U[:, 1] .= normalize(Vector(state))
     @views z = H * U[:, 1]
     for i in 1:k-1
         @views a = U[:, i]' * z
@@ -62,10 +56,9 @@ function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Num
         H_k[i, i + 1] = b
         H_k[i + 1, i] = b
         @views U[:, i + 1] .= z / b
-        @views z = H * U[:, i + 1] .- b * U[:, i]
+        @views z .= H * U[:, i + 1] .- b * U[:, i]
     end
     H_k[k, k] = U[:, k]' * z
-    return H_k, U
 end
 
 # d : statevector dimension;

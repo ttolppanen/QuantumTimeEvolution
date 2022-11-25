@@ -2,7 +2,6 @@
 # using QuantumOperators
 
 export exactevolve
-export exactevolve_bosehubbard
 
 # state0 : initial state;
 # H : the Hamiltonian;
@@ -27,10 +26,4 @@ function exactevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numbe
         !isa(effect!, Nothing) ? effect!(out[end]) : nothing
     end
     return out
-end
-
-function exactevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real; kwargs...)#keyword arguments for bosehubbard and exactevolve
-    bhkwargs, eekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!, :savelast]) #bhkwargs ∈  {w, U, J}, eekwargs ∈ {effect!, savelast}
-    H = bosehubbard(d, L; bhkwargs...)
-    return exactevolve(state0, H, dt, t; eekwargs...)
 end

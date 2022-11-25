@@ -1,3 +1,6 @@
+# using QuantumStates
+# using ITensors
+
 function testtype(state)
     @test isa(state, AbstractVector{<:Number})
     @test issparse(state)

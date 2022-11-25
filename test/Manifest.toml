@@ -589,6 +589,18 @@ git-tree-sha1 = "0c03844e2231e12fda4d0086fd7cbe4098ee8dc5"
 uuid = "ea2cea3b-5b76-57ae-a6ef-0a8af62496e1"
 version = "5.15.3+2"
 
+[[deps.QuantumOperators]]
+deps = ["ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "0f14a3d1d25758c1324f6b91e0ca341286be5781"
+uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
+version = "0.1.5"
+
+[[deps.QuantumStates]]
+deps = ["ITensors", "SparseArrays"]
+git-tree-sha1 = "e7f1383f704da6e475240eec490a5c558860ee45"
+uuid = "0a1581c1-ab82-4660-a1be-26f7b3483457"
+version = "0.1.2"
+
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"

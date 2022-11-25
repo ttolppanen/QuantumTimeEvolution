@@ -1,3 +1,8 @@
+# using QuantumStates
+# using QuantumOperators
+# using ITensors
+# using Plots
+
 @testset "Boson Stack" begin
     
 d = 4; L = 4; N = 3

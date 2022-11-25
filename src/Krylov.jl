@@ -9,16 +9,21 @@ export krylovevolve_bosehubbard
 # t : total time the simulation needs to run;
 # dt : time step;
 # effect! : function with one argument, the state; something to do to the state after each timestep
+# savelast : set true if you only need the last value of the time-evolution
 
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; effect! = nothing)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; effect! = nothing, savelast::Bool = false)
     if k < 2
         throw(ArgumentError("k <= 1"))
     end
     out = [deepcopy(state0)]
-    for i in dt:dt:t
+    for _ in dt:dt:t
         Hₖ, U = krylovsubspace(out[end], H, k)
         try #This is just to get a more descriptive error message
-            push!(out, normalize(U * exp(-1im * dt * Hₖ)[:, 1]))
+            if savelast
+                out[1] .= normalize(U * exp(-1im * dt * Hₖ)[:, 1])
+            else
+                push!(out, normalize(U * exp(-1im * dt * Hₖ)[:, 1]))
+            end
         catch error
             if isa(error, ArgumentError)
                 throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, or there is no time evolution H * state0 = 0."))
@@ -30,7 +35,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
 end
 
 function krylovevolve_bosehubbard(d::Integer, L::Integer, state0::AbstractVector{<:Number}, dt::Real, t::Real, k::Integer; kwargs...) #keyword arguments for bosehubbard, krylovevolve
-    bhkwargs, kekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!]) #bhkwargs ∈  {w, U, J}, kekwargs ∈ {effect!}
+    bhkwargs, kekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!, :savelast]) #bhkwargs ∈  {w, U, J}, kekwargs ∈ {effect!, savelast}
     H = bosehubbard(d, L; bhkwargs...)
     return krylovevolve(state0, H, dt, t, k; kekwargs...)
 end

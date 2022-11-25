@@ -10,19 +10,24 @@ export mpsevolve_bosehubbard
 # t : total time the simulation needs to run;
 # dt : time step;
 # effect! : function with one argument, the state; something to do to the state after each timestep
+# savelast : set true if you only need the last value of the time-evolution
 
-function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect! = nothing, kwargs...) #keyword arguments for ITensors.apply
+function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect! = nothing, savelast::Bool = false, kwargs...) #keyword arguments for ITensors.apply
     out = [deepcopy(mps0)]
     for _ in dt:dt:t
-        push!(out, apply(gates, out[end]; normalize = true, kwargs...))
+        if savelast
+            out[1] .= apply(gates, out[1]; normalize = true, kwargs...)
+        else
+            push!(out, apply(gates, out[end]; normalize = true, kwargs...))
+        end
         !isa(effect!, Nothing) ? effect!(out[end]) : nothing
     end
     return out
 end
 
 function mpsevolve_bosehubbard(mps0::MPS, dt::Real, t::Real; kwargs...) #keyword arguments for bosehubbard, mpsevolve
-    #bhkwargs ∈  {w, U, J}, mekwargs ∈ {effect!, cutoff, maxdim, mindim, normalize, method} where everything after effect! is for ITensors.apply
-    bhkwargs, mekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!, :cutoff, :maxdim, :mindim, :normalize, :method]) 
+    #bhkwargs ∈  {w, U, J}, mekwargs ∈ {effect!, savelast, cutoff, maxdim, mindim, normalize, method} where everything after effect! is for ITensors.apply
+    bhkwargs, mekwargs = splitkwargs(kwargs, [:w, :U, :J], [:effect!, :savelast, :cutoff, :maxdim, :mindim, :normalize, :method]) 
     gates = bosehubbardgates(siteinds(mps0), dt; bhkwargs...)
     return mpsevolve(mps0, gates, dt, t; mekwargs...)
 end

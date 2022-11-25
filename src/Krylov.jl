@@ -27,6 +27,8 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
         catch error
             if isa(error, ArgumentError)
                 throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, or there is no time evolution H * state0 = 0."))
+            else
+                throw(error)
             end
         end
         !isa(effect!, Nothing) ? effect!(out[end]) : nothing

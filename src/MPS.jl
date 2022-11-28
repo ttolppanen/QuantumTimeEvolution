@@ -24,7 +24,7 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect!
     return out
 end
 
-function bosehubbardgates(indices, dt; w=1.0, U=1.0, J=1.0)
+function bosehubbardgates(indices::Vector{<:Index}, dt::Real; w=1.0, U=1.0, J=1.0)
     L = length(indices)
     out = ITensor[]
     for i in 1:L-1

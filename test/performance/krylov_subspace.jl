@@ -27,11 +27,11 @@ function f()
     k = 6
     H = bosehubbard(d, L)
     w = deepcopy(state)
-    H_k, U, z = QuantumTimeEvolution.krylov_prealloc_Hk_U(length(state), k)
-    old_lanczos!(H, state, k, U, H_k, w);
-    old_lanczos!(H, state, k, U, H_k, w);
-    @time QuantumTimeEvolution.krylovsubspace!(state, H, k, H_k, U, z)
-    @time krylovevolve(state, H, 0.1, 1.0, k, H_k, U, z)
+    pa_k = QuantumTimeEvolution.PA_krylov(length(state), k)
+    old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
+    old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
+    @time QuantumTimeEvolution.krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)
+    @code_warntype QuantumTimeEvolution.krylovsubspace!(state, H, k, pa_k)
 end
 
 f();

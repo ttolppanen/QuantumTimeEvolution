@@ -1,7 +1,7 @@
 name = "QuantumTimeEvolution"
 uuid = "7373133c-a6f7-4e95-971a-e453f442ca60"
 authors = ["ttolppanen <taneli.tolppanen@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 ITensors = "9136182c-28ba-11e9-034c-db9fb085ebd5"

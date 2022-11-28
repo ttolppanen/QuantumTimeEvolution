@@ -31,7 +31,7 @@ function f()
     old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
     old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
     @time QuantumTimeEvolution.krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)
-    @code_warntype QuantumTimeEvolution.krylovsubspace!(state, H, k, pa_k)
+    @time krylovevolve(state, H, 0.1, 1.0, k, pa_k)
 end
 
 f();

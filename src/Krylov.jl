@@ -29,21 +29,18 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     pa_k = PA_krylov(length(state0), k)
     return krylovevolve(state0, H, dt, t, k, pa_k; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov; kwargs...)
-    return krylovevolve(state0, H, dt, t, k, pa_k.H_k, pa_k.U, pa_k.z; kwargs...)
-end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, H_k::MMatrix, U::Matrix{ComplexF64}, z::Vector{ComplexF64}; effect! = nothing, savelast::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov; effect! = nothing, savelast::Bool = false)
     if k < 2
         throw(ArgumentError("k <= 1"))
     end
     out = [deepcopy(state0)]
     for _ in dt:dt:t
-        krylovsubspace!(out[end], H, k, H_k, U, z) # makes changes in to pa_k
+        krylovsubspace!(out[end], H, k, pa_k) # makes changes into pa_k
         try # This is just to get a more descriptive error message
             if savelast
-                out[1] .= sparse(normalize(U * exp(-1im * dt * H_k)[:, 1]))
+                out[1] .= sparse(normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
             else
-                push!(out, normalize(U * exp(-1im * dt * H_k)[:, 1]))
+                push!(out, normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
             end
         catch error
             if isa(error, ArgumentError)

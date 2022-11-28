@@ -45,7 +45,7 @@ function bosehubbardgates(indices::Vector{<:Index}, dt::Real; w=1.0, U=1.0, J=1.
     return out
 end
 
-function matproduct(A, B)
+function matproduct(A::ITensor, B::ITensor) #matproduct for  two tensors
     Bind = inds(B)
     replaceind!(B, Bind[1], noprime(Bind[1]))
     replaceind!(B, Bind[2], Bind[2]'')

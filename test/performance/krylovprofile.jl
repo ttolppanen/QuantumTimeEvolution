@@ -18,4 +18,4 @@ function mipt(d, L, dt, t, traj, prob)
     return prob, res
 end
 
-@time mipt(2, 4, 0.1, 10.0, 100, 0.01:0.01:0.3);
+@profview @time mipt(2, 4, 0.1, 10.0, 100, 0.01:0.01:0.3);

@@ -36,46 +36,34 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     out = [deepcopy(Vector(state0))]
     for _ in dt:dt:t
         krylovsubspace!(out[end], H, k, pa_k) # makes changes into pa_k
-        try # This is just to get a more descriptive error message
-            if savelast
-                mul!(out[1], pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
-                normalize!(out[1])
-            else
-                push!(out, normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
-            end
-        catch error
-            if isa(error, ArgumentError)
-                throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too largle or there is no time evolution H * state0 = 0."))
-            else
-                throw(error)
-            end
+        all(isfinite, pa_k.H_k) ? nothing : throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0."))
+        if savelast
+            mul!(out[1], pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
+            normalize!(out[1])
+        else
+            push!(out, normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
         end
         !isa(effect!, Nothing) ? effect!(out[end]) : nothing
     end
-    if issparse(state0)
-        return [sparse(s) for s in out]
-    else
-        return out
-    end
+    return out
 end
 
 # here H_k, U and z are pre-allocated
 function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
     # doesnt check if HΨ = 0
-    U[:, 1] .= state # Here should be normalization, but the state should always be normalized?
-    @views mul!(z, H, U[:, 1])
-    for i in 1:k-1
-        @views a = U[:, i]' * z
-        @views z .-= a .* U[:, i]
-        b = norm(z)
-        H_k[i, i] = a
-        H_k[i, i + 1] = b
-        H_k[i + 1, i] = b
-        @views U[:, i + 1] .= z ./ b
-        @views mul!(z, H, U[:, i + 1])
-        @views z .-= b .* U[:, i]
+    U[:, 1] .= state
+    mul!(z, H, state)
+    H_k[1, 1] = z' * state
+    z .-= H_k[1, 1] .* state
+    for j in 2:k
+        beta = norm(z)
+        U[:, j] .= z ./ beta
+        @views mul!(z, H, U[:, j])
+        @views H_k[j, j] = z' * U[:, j]
+        @views z .-= (H_k[j, j] .* U[:, j] .+ beta .* U[:, j - 1])
+        H_k[j - 1, j] = beta
+        H_k[j, j - 1] = beta
     end
-    @views H_k[k, k] = U[:, k]' * z
 end
 function krylovsubspace!(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov)
     krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)

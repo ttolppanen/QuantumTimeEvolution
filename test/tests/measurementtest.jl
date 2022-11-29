@@ -24,7 +24,7 @@
     Random.seed!(rng_seed) #Makes the rng the same
     r_exact = exactevolve(state0, U_op, dt, t; effect! = meffect!)
     Random.seed!(rng_seed) #Makes the rng the same
-    r_krylov = krylovevolve(state0, H, dt, t, 5; effect! = meffect!)
+    r_krylov = krylovevolve(state0, H, dt, t, 4; effect! = meffect!)
     Random.seed!(rng_seed) #Makes the rng the same
     r_mps = mpsevolve(mps0, gates, dt, t; effect! = meffect_t!)
     plot_x = 0:dt:t

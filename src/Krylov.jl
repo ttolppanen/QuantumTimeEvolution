@@ -33,12 +33,13 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     if k < 2
         throw(ArgumentError("k <= 1"))
     end
-    out = [deepcopy(state0)]
+    out = [deepcopy(Vector(state0))]
     for _ in dt:dt:t
         krylovsubspace!(out[end], H, k, pa_k) # makes changes into pa_k
         try # This is just to get a more descriptive error message
             if savelast
-                out[1] .= sparse(normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
+                mul!(out[1], pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
+                normalize!(out[1])
             else
                 push!(out, normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
             end
@@ -55,9 +56,9 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
 end
 
 # here H_k, U and z are pre-allocated
-function krylovsubspace!(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
+function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
     # doesnt check if HΨ = 0
-    U[:, 1] .= Vector(state) # Here should be normalization, but the state should always be normalized?
+    U[:, 1] .= state # Here should be normalization, but the state should always be normalized?
     @views mul!(z, H, U[:, 1])
     for i in 1:k-1
         @views a = U[:, i]' * z

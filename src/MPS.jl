@@ -50,7 +50,7 @@ function bosehubbardgates(indices::Vector{<:Index}, dt::Real; k::Integer = 1, w=
         s_k = 1 / (4 - 4^(1 / (2*k - 1)))
         U_1 = bosehubbardgates(indices, s_k * dt; k = k - 1, w, U, J)
         U_2 = bosehubbardgates(indices, (1 - 4 * s_k) * dt; k = k - 1, w, U, J)
-        return append!(U_1, deepcopy(U_1), U_2, deepcopy(U_1), deepcopy(U_1))
+        return vcat(U_1, U_1, U_2, U_1, U_1)
     end
 end
 

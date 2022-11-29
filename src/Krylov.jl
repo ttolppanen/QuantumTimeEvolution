@@ -52,7 +52,11 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
         end
         !isa(effect!, Nothing) ? effect!(out[end]) : nothing
     end
-    return out
+    if issparse(state0)
+        return [sparse(s) for s in out]
+    else
+        return out
+    end
 end
 
 # here H_k, U and z are pre-allocated

@@ -24,25 +24,34 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect!
     return out
 end
 
-function bosehubbardgates(indices::Vector{<:Index}, dt::Real; w=1.0, U=1.0, J=1.0)
-    L = length(indices)
-    out = ITensor[]
-    for i in 1:L-1
-        s1 = indices[i]
-        s2 = indices[i + 1]
-        UTermMat = matproduct(op("N", s1), (op("N", s1) - op("I", s1)))
-        h = w * op("N", s1) * op("I", s2)
-        h += -U/2 * UTermMat * op("I", s2)
-        h += J * (op("adag", s1) * op("a", s2) + op("a", s1) * op("adag", s2))
+# The expansion is 2k-th order
+function bosehubbardgates(indices::Vector{<:Index}, dt::Real; k::Integer = 1, w=1.0, U=1.0, J=1.0)
+    k < 1 ? throw(ArgumentError("Trotter order k < 1")) : nothing
+    if k == 1
+        L = length(indices)
+        out = ITensor[]
+        for i in 1:L-1
+            s1 = indices[i]
+            s2 = indices[i + 1]
+            UTermMat = matproduct(op("N", s1), (op("N", s1) - op("I", s1)))
+            h = w * op("N", s1) * op("I", s2)
+            h += -U/2 * UTermMat * op("I", s2)
+            h += J * (op("adag", s1) * op("a", s2) + op("a", s1) * op("adag", s2))
+            exph = exp(-im * dt / 2 * h)
+            push!(out, exph)
+        end
+        s1 = indices[end]
+        h = w * op("N", s1) - U/2 * matproduct(op("N", s1), (op("N", s1) - op("I", s1)))
         exph = exp(-im * dt / 2 * h)
         push!(out, exph)
+        append!(out, reverse(out))
+        return out
+    else
+        s_k = 1 / (4 - 4^(1 / (2*k - 1)))
+        U_1 = bosehubbardgates(indices, s_k * dt; k = k - 1, w, U, J)
+        U_2 = bosehubbardgates(indices, (1 - 4 * s_k) * dt; k = k - 1, w, U, J)
+        return append!(U_1, deepcopy(U_1), U_2, deepcopy(U_1), deepcopy(U_1))
     end
-    s1 = indices[end]
-    h = w * op("N", s1) - U/2 * matproduct(op("N", s1), (op("N", s1) - op("I", s1)))
-    exph = exp(-im * dt / 2 * h)
-    push!(out, exph)
-    append!(out, reverse(out))
-    return out
 end
 
 function matproduct(A::ITensor, B::ITensor) #matproduct for  two tensors

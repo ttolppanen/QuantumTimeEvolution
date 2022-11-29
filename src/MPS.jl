@@ -24,8 +24,8 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect!
     return out
 end
 
-# The expansion is 2k-th order
-function bosehubbardgates(indices::Vector{<:Index}, dt::Real; k::Integer = 1, w=1.0, U=1.0, J=1.0)
+# The expansion is 2k-th order by default
+function bosehubbardgates(indices::Vector{<:Index}, dt::Real; k::Integer = 2, w=1.0, U=1.0, J=1.0)
     k < 1 ? throw(ArgumentError("Trotter order k < 1")) : nothing
     if k == 1
         L = length(indices)

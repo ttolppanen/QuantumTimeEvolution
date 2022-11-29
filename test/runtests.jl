@@ -13,6 +13,7 @@ end
 
 include("tests/twoqubitstest.jl")
 include("tests/bosonstacktest.jl")
+include("tests/trotterodertest.jl")
 include("tests/measurementtest.jl")
 include("tests/typetest.jl")
 include("tests/savelasttest.jl")

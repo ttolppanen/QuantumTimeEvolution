@@ -23,13 +23,13 @@ end
 
 function f()
     d = 3; L = 4
-    state = zeroone(d, L)
+    state = Vector(zeroone(d, L))
     k = 6
     H = bosehubbard(d, L)
     w = deepcopy(state)
     pa_k = QuantumTimeEvolution.PA_krylov(length(state), k)
     old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
-    old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
+    @time old_lanczos!(H, state, k, pa_k.U, pa_k.H_k, w);
     @time QuantumTimeEvolution.krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)
     @time krylovevolve(state, H, 0.1, 1.0, k, pa_k)
 end

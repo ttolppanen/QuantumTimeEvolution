@@ -55,9 +55,7 @@ function calc_ent_traj(msr_prob)
     dt = 0.1; t = 5
     mps0 = zeroonemps(d, L)
     gates = bosehubbardgates(siteinds(mps0), dt)
-    op_to_msr = nop(d)
-    msrop = measurementoperators(op_to_msr, siteinds(mps0))
-    meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
+    meffect! = measuresitesrandomly!(siteinds(mps0), nop(d), msr_prob)
     r_f() = mpsevolve(mps0, gates, dt, t; effect! = meffect!, cutoff = 1E-8)
     result = solvetrajectories(r_f, 30)
     res = trajmean(result, state -> entanglement(state, 2))
@@ -76,6 +74,23 @@ end
     plot!(pl, t, res, label="0.3")
     saveplot(pl, "traj_entanglement")
     @test true
+end
+@testset "measuresitesrandomly overload" begin
+    d = 3; L = 4; half = Int(floor(L/2))
+    dt = 0.1; t = 1.0
+    rng_seed = 5; msr_prob = 0.5
+    state = zeroone(d, L)
+    H = bosehubbard(d, L)
+    msrop = measurementoperators(nop(d), L)
+    effect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
+    Random.seed!(rng_seed)
+    r_k = krylovevolve(state, H, dt, t, 5; effect!)
+    r1 = entanglement(d, L, r_k, half)
+    effect! = measuresitesrandomly!(L, nop(d), msr_prob)
+    Random.seed!(rng_seed)
+    r_k = krylovevolve(state, H, dt, t, 5; effect!)
+    r2 = entanglement(d, L, r_k, half)
+    @test norm(r2 - r1) + 1 ≈ 1.0
 end
 
 end # testset

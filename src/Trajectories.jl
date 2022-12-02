@@ -4,9 +4,9 @@ export solvetrajectories
 #traj : number of trajectories
 
 function solvetrajectories(f::Function, traj::Integer)
-    out = []
-    for _ in 1:traj
-        push!(out, f())
+    out = [[] for _ in 1:Threads.nthreads()]
+    Threads.@threads for _ in 1:traj
+        push!(out[Threads.threadid()], f())
     end
-    return out
+    return reduce(vcat, out)
 end

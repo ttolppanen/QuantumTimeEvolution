@@ -15,7 +15,7 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect!
     out = [deepcopy(mps0)]
     for _ in dt:dt:t
         if savelast
-            out[1] .= apply(gates, out[1]; normalize = true, kwargs...)
+            out[1] = apply(gates, out[1]; normalize = true, kwargs...)
         else
             push!(out, apply(gates, out[end]; normalize = true, kwargs...))
         end

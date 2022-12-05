@@ -26,24 +26,24 @@ struct PA_krylov{T}
 end
 
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; kwargs...)
-    pa_k = PA_krylov(length(state0), k)
-    return krylovevolve(state0, H, dt, t, k, pa_k; kwargs...)
+    out = kwargs[:savelast] ? [complex(zeros(size(state0)))] : [complex(zeros(size(state0))) for _ in 0:dt:t]
+    return krylovevolve(state0, H, dt, t, k, out; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov; effect! = nothing, savelast::Bool = false)
-    if k < 2
-        throw(ArgumentError("k <= 1"))
-    end
-    out = [deepcopy(Vector(state0))]
-    for _ in dt:dt:t
-        krylovsubspace!(out[end], H, k, pa_k) # makes changes into pa_k
-        all(isfinite, pa_k.H_k) ? nothing : throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0."))
-        if savelast
-            mul!(out[1], pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
-            normalize!(out[1])
-        else
-            push!(out, normalize(pa_k.U * @view(exp(-1im * dt * pa_k.H_k)[:, 1])))
-        end
-        !isa(effect!, Nothing) ? effect!(out[end]) : nothing
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, out::Vector{<:AbstractVector{<:Number}}; kwargs...)
+    pa_k = PA_krylov(length(state0), k)
+    return krylovevolve(state0, H, dt, t, k, pa_k, out; kwargs...)
+end
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, out::Vector{<:AbstractVector{<:Number}}; effect! = nothing, savelast::Bool = false)
+    if k < 2 throw(ArgumentError("k <= 1")) end
+    apply_effect = !isa(effect!, Nothing)
+    out[1] .= deepcopy(Vector(state0))
+    for i in 2:length(dt:dt:t)
+        state = savelast ? out[1] : out[i]
+        krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
+        if !all(isfinite, pa_k.H_k) throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) end
+        mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
+        normalize!(state)
+        if apply_effect effect!(state) end
     end
     return out
 end

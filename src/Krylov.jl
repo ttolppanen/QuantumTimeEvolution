@@ -3,6 +3,7 @@
 # using StaticArrays
 
 export krylovevolve
+export PA_krylov
 
 # state0 : initial state;
 # H : the Hamiltonian;
@@ -26,20 +27,18 @@ struct PA_krylov{T}
 end
 
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; kwargs...)
-    out = kwargs[:savelast] ? [complex(zeros(size(state0)))] : [complex(zeros(size(state0))) for _ in 0:dt:t]
-    return krylovevolve(state0, H, dt, t, k, out; kwargs...)
-end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, out::Vector{<:AbstractVector{<:Number}}; kwargs...)
     pa_k = PA_krylov(length(state0), k)
-    return krylovevolve(state0, H, dt, t, k, pa_k, out; kwargs...)
+    return krylovevolve(state0, H, dt, t, k, pa_k; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, out::Vector{<:AbstractVector{<:Number}}; effect! = nothing, savelast::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov; effect! = nothing, savelast::Bool = false)
     if k < 2 throw(ArgumentError("k <= 1")) end
     apply_effect = !isa(effect!, Nothing)
-    out[1] .= deepcopy(Vector(state0))
-    for i in 2:length(dt:dt:t)
+    out = savelast ? [complex(zeros(size(state0)))] : [complex(zeros(size(state0))) for _ in 0:dt:t]
+    out[1] .= Vector(state0)
+    for i in 2:length(0:dt:t)
+        prev_state = savelast ? out[1] : out[i-1]
         state = savelast ? out[1] : out[i]
-        krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
+        krylovsubspace!(prev_state, H, k, pa_k) # makes changes into pa_k
         if !all(isfinite, pa_k.H_k) throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) end
         mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
         normalize!(state)
@@ -57,6 +56,10 @@ function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k
     z .-= H_k[1, 1] .* state
     for j in 2:k
         beta = norm(z)
+        if beta == 0.0
+            set_rest_of_Hk_to_zero(H_k, j, k)
+            break;
+        end
         U[:, j] .= z ./ beta
         @views mul!(z, H, U[:, j])
         @views H_k[j, j] = z' * U[:, j]
@@ -72,4 +75,18 @@ function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Num
     pa_k = PA_krylov(length(state0), k)
     krylovsubspace!(state, H, k, pa_k)
     return pa_k
+end
+
+function set_rest_of_Hk_to_zero(H_k, j::Integer, k::Integer)
+    for j_j = 1:k
+        if j_j < j
+            for i_j = j:k
+                H_k[i_j, j_j] = 0.0
+            end
+        else
+            for i_j = 1:k
+                H_k[i_j, j_j] = 0.0
+            end
+        end
+    end
 end

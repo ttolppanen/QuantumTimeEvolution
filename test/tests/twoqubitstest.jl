@@ -6,7 +6,7 @@
 
 @testset "Two Qubits" begin
 
-d = 2; L = 2; k = 2
+d = 2; L = 2; k = 5
 dt = 0.1; t = 5.0
 one_boson_site = 1
 state = singleone(d, L, one_boson_site)

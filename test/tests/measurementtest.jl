@@ -57,7 +57,7 @@ function calc_ent_traj(msr_prob)
     gates = bosehubbardgates(siteinds(mps0), dt)
     meffect! = measuresitesrandomly!(siteinds(mps0), nop(d), msr_prob)
     r_f() = mpsevolve(mps0, gates, dt, t; effect! = meffect!, cutoff = 1E-8)
-    result = solvetrajectories(r_f, 30)
+    result = solvetrajectories(r_f, 30; use_threads = false)
     res = trajmean(result, state -> entanglement(state, 2))
     return 0:dt:t, res
 end

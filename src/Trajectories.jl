@@ -6,15 +6,14 @@ export solvetrajectories
 #traj : number of trajectories
 
 function solvetrajectories(f::Function, traj::Integer; use_threads::Bool = true)
-    out = [f()]
-    for _ in 2:traj push!(out, deepcopy(out[1])) end
+    out = Array{Any}(undef, traj)
     if use_threads
-        Threads.@threads for i in 2:traj
-            f(out[i])
+        Threads.@threads for i in 1:traj
+            out[i] = f()
         end
     else
-        for i in 2:traj
-            f(out[i])
+        for i in 1:traj
+            out[i] = f()
         end
     end
     return out

@@ -22,5 +22,5 @@ function mipt(d, L, dt, t, traj, prob)
     return prob, res
 end
 # PA_krylov(length(state0), k)
-BLAS.set_num_threads(1)
-@btime res = mipt(2, 4, 0.1, 10.0, 100, 0.01:0.05:0.3);
+# BLAS.set_num_threads(1)
+@btime res = mipt(2, 4, 0.1, 10.0, 1000, 0.01:0.05:0.3);

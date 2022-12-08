@@ -75,6 +75,25 @@ end
     saveplot(pl, "traj_entanglement")
     @test true
 end
+@testset "Trajectories with mipt" begin
+    d = 2; L = 4
+    dt = 0.1; t = 5
+    prob = [0.01, 0.15, 0.3]
+    traj = 30
+    state0 = zeroone(d, L)
+    H = bosehubbard(d, L)
+    msrop = measurementoperators(nop(d), L)
+    meffect!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
+    calc_ent(r_traj) = trajmean(r_traj, s -> entanglement(d, L, s, 2))
+    res1 = mipt(state0, H, 6, meffect!, dt, t, prob, traj, calc_ent)
+    mps0 = onezeromps(d, L)
+    gates = bosehubbardgates(siteinds(mps0), dt)
+    msrop = measurementoperators(nop(d), siteinds(mps0))
+    meffect2!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
+    calc_ent2(r_traj) = trajmean(r_traj, s -> entanglement(s, 2))
+    res2 = mipt(mps0, gates, meffect2!, dt, t, prob, traj, calc_ent2)
+    @test all([(res1[i] - res2[i]) < 0.1 for i in 1:length(prob)]) # close enough...
+end
 @testset "measuresitesrandomly overload" begin
     d = 3; L = 4; half = Int(floor(L/2))
     dt = 0.1; t = 1.0

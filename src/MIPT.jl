@@ -6,11 +6,11 @@
 export mipt
 
 function mipt(mps0::MPS, gates, meffect!, dt, t, prob, traj, calc_res...)
-    traj_f(p) = solvetrajectories(mpsevolve(mps0, gates, dt, t; effect! = state -> meffect!(state, p), savelast = true), traj)
+    traj_f(p) = solvetrajectories(() -> mpsevolve(mps0, gates, dt, t; effect! = state -> meffect!(state, p), savelast = true), traj)
     return mipt_abstract(traj_f, prob, calc_res...)
 end
 function mipt(state0::AbstractVector, H, k::Integer, meffect!, dt, t, prob, traj, calc_res...)
-    traj_f(p) = solvetrajectories(krylovevolve(state0, H, dt, t, k; effect! = state -> meffect!(state, p), savelast = true), traj)
+    traj_f(p) = solvetrajectories(() -> krylovevolve(state0, H, dt, t, k; effect! = state -> meffect!(state, p), savelast = true), traj)
     return mipt_abstract(traj_f, prob, calc_res...)
 end
 function mipt_abstract(traj_f, prob, calc_res...)

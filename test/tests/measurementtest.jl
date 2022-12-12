@@ -92,6 +92,8 @@ end
     meffect2!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
     calc_ent2(r_traj) = trajmean(r_traj, s -> entanglement(s, 2))
     res2 = mipt(mps0, gates, meffect2!, dt, t, prob, traj, calc_ent2)
+    pl = plot(prob, res2)
+    saveplot(pl, "mipt_test")
     @test all([(res1[i] - res2[i]) < 0.1 for i in 1:length(prob)]) # close enough...
 end
 @testset "measuresitesrandomly overload" begin

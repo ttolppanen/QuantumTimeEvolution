@@ -1,5 +1,6 @@
 module QuantumTimeEvolution
 
+using Distributed
 using SparseArrays
 using LinearAlgebra
 using ITensors

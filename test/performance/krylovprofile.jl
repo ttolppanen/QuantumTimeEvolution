@@ -19,6 +19,7 @@ end
         k = 3
         state0 = zeroone(d, L)
         H = bosehubbard(d, L)
+        @show workers()
         op_to_msr = nop(d)
         msrop = measurementoperators(op_to_msr, L)
         res = []

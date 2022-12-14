@@ -646,7 +646,7 @@ version = "0.1.2"
 
 [[deps.QuantumTimeEvolution]]
 deps = ["Distributed", "ITensors", "LinearAlgebra", "QuantumOperators", "SparseArrays", "StaticArrays"]
-path = "/home/htolppan/Documents/Code/Modules/QuantumTimeEvolution"
+path = "C:\\Users\\Work\\.julia\\dev\\QuantumTimeEvolution"
 uuid = "7373133c-a6f7-4e95-971a-e453f442ca60"
 version = "0.3.1"
 

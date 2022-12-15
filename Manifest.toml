@@ -31,10 +31,10 @@ uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 version = "1.15.6"
 
 [[deps.Compat]]
-deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "78bee250c6826e1cf805a88b7f1e86025275d208"
+deps = ["Dates", "LinearAlgebra", "UUIDs"]
+git-tree-sha1 = "00a2cccc7f098ff3b66806862d275ca3db9e6e5a"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.46.0"
+version = "4.5.0"
 
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -44,19 +44,11 @@ uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
-[[deps.DelimitedFiles]]
-deps = ["Mmap"]
-uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
-
 [[deps.Dictionaries]]
 deps = ["Indexing", "Random", "Serialization"]
 git-tree-sha1 = "e82c3c97b5b4ec111f3c1b55228cebc7510525a2"
 uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 version = "0.3.25"
-
-[[deps.Distributed]]
-deps = ["Random", "Serialization", "Sockets"]
-uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
@@ -179,9 +171,9 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[deps.NDTensors]]
 deps = ["Adapt", "Compat", "Dictionaries", "Functors", "HDF5", "LinearAlgebra", "Random", "Requires", "SimpleTraits", "StaticArrays", "Strided", "TimerOutputs", "TupleTools"]
-git-tree-sha1 = "c04da1fe76f68452be95a1a340b5b806bf7da13f"
+git-tree-sha1 = "7f76e5ce5dcf1eadd2f1dace304ec7cc7bfd5697"
 uuid = "23ae76d9-e61a-49c4-8f12-3f1a16adf9cf"
-version = "0.1.44"
+version = "0.1.45"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -198,9 +190,9 @@ version = "1.1.19+0"
 
 [[deps.PackageCompiler]]
 deps = ["Artifacts", "LazyArtifacts", "Libdl", "Pkg", "Printf", "RelocatableFolders", "TOML", "UUIDs"]
-git-tree-sha1 = "4a34377fc0f0dd5ad63ed194fbac52aec1944de0"
+git-tree-sha1 = "68cd7e4e645fbfe72a906fdafd6838b308e4d148"
 uuid = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
-version = "2.1.1"
+version = "2.1.2"
 
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
@@ -218,11 +210,11 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
 deps = ["ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "e3bf77acdc5e8d47999c0cbfa2d6ce8cda5449ed"
+git-tree-sha1 = "92f3d5673a309b9a13aca9a6bbb23f488c7aaddf"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumOperators.git"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.8"
+version = "0.1.10"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
@@ -261,10 +253,6 @@ deps = ["Serialization"]
 git-tree-sha1 = "8e73e49eaebf73486446a3c1eede403bff259826"
 uuid = "d3ce8812-9567-47e9-a7b5-65a6d70a3065"
 version = "0.1.0"
-
-[[deps.SharedArrays]]
-deps = ["Distributed", "Mmap", "Random", "Serialization"]
-uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
 [[deps.SimpleTraits]]
 deps = ["InteractiveUtils", "MacroTools"]

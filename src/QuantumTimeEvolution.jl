@@ -16,5 +16,6 @@ include("Krylov.jl")
 include("MPS.jl")
 include("Effects.jl")
 include("Trajectories.jl")
+include("MIPT.jl")
 
 end # module

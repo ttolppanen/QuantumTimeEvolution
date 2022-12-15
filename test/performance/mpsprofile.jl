@@ -4,10 +4,12 @@ if(length(procs()) == 1)
     @show workers()
     println("Added a process")
 end
-@everywhere begin
-    using Pkg; Pkg.activate(@__DIR__); Pkg.develop("QuantumTimeEvolution")
-    Pkg.instantiate(); Pkg.precompile()
-end
+# @everywhere begin
+#     using Pkg
+#     Pkg.activate(@__DIR__)
+#     Pkg.instantiate()
+#     Pkg.precompile()
+# end
 
 @everywhere begin
     using QuantumStates
@@ -25,7 +27,7 @@ end
         for p in prob
             meffect!(state) = measuresitesrandomly!(state, msrop, p)
             r_exact() = mpsevolve(mps0, gates, dt, t; savelast = true)
-            r_traj = solvetrajectories(r_exact, traj; paral = :none)
+            r_traj = solvetrajectories(r_exact, traj; paral = :distributed)
             r_mean = trajmean(r_traj, s->entanglement(s, Int(floor(L/2))))
             push!(res, r_mean[1])
         end

@@ -5,12 +5,13 @@
 
 export mipt
 
-function mipt(mps0::MPS, gates, meffect!, dt, t, prob, traj, calc_res...; kwargs...) # kwargs for mpsevolve
-    traj_f(p) = solvetrajectories(() -> mpsevolve(mps0, gates, dt, t; effect! = state -> meffect!(state, p), savelast = true, kwargs...), traj)
+function mipt(mps0::MPS, gates, meffect!, dt, t, prob, traj, calc_res...; kwargs...) # kwargs for mpsevolve and solvetraj
+    mpsevolve_kwargs, solvetraj_kwargs = splitkwargs(kwargs, [:cutoff, :maxdim, :mindim], [:paral])
+    traj_f(p) = solvetrajectories(() -> mpsevolve(mps0, gates, dt, t; effect! = state -> meffect!(state, p), savelast = true, mpsevolve_kwargs...), traj; solvetraj_kwargs...)
     return mipt_abstract(traj_f, prob, calc_res...)
 end
-function mipt(state0::AbstractVector, H, k::Integer, meffect!, dt, t, prob, traj, calc_res...)
-    traj_f(p) = solvetrajectories(() -> krylovevolve(state0, H, dt, t, k; effect! = state -> meffect!(state, p), savelast = true), traj)
+function mipt(state0::AbstractVector, H, k::Integer, meffect!, dt, t, prob, traj, calc_res...; kwargs...) # kwargs for solvetraj
+    traj_f(p) = solvetrajectories(() -> krylovevolve(state0, H, dt, t, k; effect! = state -> meffect!(state, p), savelast = true), traj; kwargs...)
     return mipt_abstract(traj_f, prob, calc_res...)
 end
 function mipt_abstract(traj_f, prob, calc_res...)

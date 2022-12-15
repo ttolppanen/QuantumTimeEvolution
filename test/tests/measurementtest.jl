@@ -85,7 +85,7 @@ end
     msrop = measurementoperators(nop(d), L)
     meffect!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
     calc_ent(r_traj) = trajmean(r_traj, s -> entanglement(d, L, s, 2))
-    res1 = mipt(state0, H, 6, meffect!, dt, t, prob, traj, calc_ent)
+    res1 = mipt(state0, H, 6, meffect!, dt, t, prob, traj, calc_ent; paral = :threads)
     mps0 = onezeromps(d, L)
     gates = bosehubbardgates(siteinds(mps0), dt)
     msrop = measurementoperators(nop(d), siteinds(mps0))

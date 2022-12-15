@@ -1,11 +1,11 @@
 using Distributed
-# if(length(procs()) == 1)
-#     addprocs(0)
-#     @show workers()
-#     println("Added a process")
-# end
+if(length(procs()) == 1)
+    addprocs(7)
+    @show workers()
+    println("Added a process")
+end
 @everywhere begin
-    using Pkg; Pkg.activate(@__DIR__)
+    using Pkg; Pkg.activate(@__DIR__); Pkg.develop("QuantumTimeEvolution")
     Pkg.instantiate(); Pkg.precompile()
 end
 

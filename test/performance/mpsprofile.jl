@@ -1,9 +1,9 @@
 using Distributed
-if(length(procs()) == 1)
-    addprocs(5)
-    @show workers()
-    println("Added a process")
-end
+# if(length(procs()) == 1)
+#     addprocs(0)
+#     @show workers()
+#     println("Added a process")
+# end
 @everywhere begin
     using Pkg; Pkg.activate(@__DIR__)
     Pkg.instantiate(); Pkg.precompile()
@@ -33,5 +33,5 @@ end
     end
 end
 
-
 @time mipt(2, 4, 0.6, 10.0, 100, 0.1:0.1:0.1);
+# rmprocs(workers())

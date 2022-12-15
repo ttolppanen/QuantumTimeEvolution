@@ -8,6 +8,7 @@ using QuantumStates
 using QuantumOperators
 
 function saveplot(pl, name)
+    mkpath("./plots/")
     savefig(pl, "./plots/" * name * ".png")
 end
 

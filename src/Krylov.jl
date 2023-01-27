@@ -4,6 +4,7 @@
 
 export krylovevolve
 export PA_krylov
+export krylov_error_estimate
 
 # state0 : initial state;
 # H : the Hamiltonian;
@@ -68,11 +69,11 @@ function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k
         H_k[j, j - 1] = beta
     end
 end
-function krylovsubspace!(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov)
+function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov)
     krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)
 end
-function krylovsubspace(state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
-    pa_k = PA_krylov(length(state0), k)
+function krylovsubspace(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
+    pa_k = PA_krylov(length(state), k)
     krylovsubspace!(state, H, k, pa_k)
     return pa_k
 end
@@ -89,4 +90,13 @@ function set_rest_of_Hk_to_zero(H_k, j::Integer, k::Integer)
             end
         end
     end
+end
+
+function krylov_error_estimate(dt::Real, k::Integer, state::AbstractVector{<:Number}, H::AbstractMatrix{<:Number})
+    err = norm(Matrix(1.0im * dt .* H))
+    err *= exp(err)
+    pa_k = krylovsubspace(Vector(state), H, k)
+    krylov_error = norm(Matrix(-1.0im * dt .* @view pa_k.H_k[1:k, 1:k]))
+    krylov_error = (krylov_error^k * exp(krylov_error) * norm(@view pa_k.U[:, 1:k]) + err) / factorial(big(k))
+    return krylov_error
 end

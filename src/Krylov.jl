@@ -29,11 +29,11 @@ struct PA_krylov{T}
     end
 end
 
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, observables; kwargs...)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, observables...; kwargs...)
     pa_k = PA_krylov(length(state0), k)
-    return krylovevolve(state0, H, dt, t, k, observables, pa_k; kwargs...)
+    return krylovevolve(state0, H, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, observables, pa_k::PA_krylov; effect! = nothing, save_before_effect::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...; effect! = nothing, save_before_effect::Bool = false)
     if k < 2 throw(ArgumentError("k <= 1")) end
     apply_effect_first = !isa(effect!, Nothing) && !save_before_effect
     apply_effect_last = !isa(effect!, Nothing) && save_before_effect

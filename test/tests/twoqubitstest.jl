@@ -19,9 +19,9 @@ ntot = nall(d, L)
 n = singlesite_n(d, L, one_boson_site)
 observables = [norm, state -> expval(state, ntot), state -> expval(state, n)]
 mps_observables = [norm, state -> sum(expval(state, "N")), state -> expval(state, "N"; sites = 2)]
-r_exact = exactevolve(state, U_op, dt, t, observables)
-r_krylov = krylovevolve(state, H, dt, t, k, observables)
-r_mps = mpsevolve(mps0, gates, dt, t, mps_observables)
+r_exact = exactevolve(state, U_op, dt, t, observables...)
+r_krylov = krylovevolve(state, H, dt, t, k, observables...)
+r_mps = mpsevolve(mps0, gates, dt, t, mps_observables...)
 r_all = [r_exact, r_krylov, r_mps]
 
 @testset "Initial State Unaffected" begin

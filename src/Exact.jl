@@ -11,7 +11,7 @@ export exactevolve
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # save_before_effect : if you want to calculate observables before effect;
 
-function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables; effect! = nothing, save_before_effect::Bool = false)
+function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; effect! = nothing, save_before_effect::Bool = false)
     apply_effect_first = !isa(effect!, Nothing) && !save_before_effect
     apply_effect_last = !isa(effect!, Nothing) && save_before_effect
     state = copy(state0)

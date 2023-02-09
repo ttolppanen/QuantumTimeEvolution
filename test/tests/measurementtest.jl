@@ -27,11 +27,11 @@
     observables = [norm, state -> expval(state, n1)]
     observables_mps = [norm, state -> expval(state, "N"; sites=1)]
     Random.seed!(rng_seed) # Makes the rng the same
-    r_exact = exactevolve(state0, U_op, dt, t, observables; effect! = meffect!)
+    r_exact = exactevolve(state0, U_op, dt, t, observables...; effect! = meffect!)
     Random.seed!(rng_seed) # Makes the rng the same
-    r_krylov = krylovevolve(state0, H, dt, t, 4, observables; effect! = meffect!)
+    r_krylov = krylovevolve(state0, H, dt, t, 4, observables...; effect! = meffect!)
     Random.seed!(rng_seed) # Makes the rng the same
-    r_mps = mpsevolve(mps0, gates, dt, t, observables_mps; effect! = meffect_t!)
+    r_mps = mpsevolve(mps0, gates, dt, t, observables_mps...; effect! = meffect_t!)
 
     plot_x = 0:dt:t
     @testset "Normalization" begin
@@ -70,7 +70,7 @@ function calc_ent_traj(msr_prob)
     gates = bosehubbardgates(siteinds(mps0), dt)
     meffect! = measuresitesrandomly!(siteinds(mps0), nop(d), msr_prob)
     observables = [state -> entanglement(state, 2)]
-    r_f() = mpsevolve(mps0, gates, dt, t, observables; effect! = meffect!, cutoff = 1E-8)
+    r_f() = mpsevolve(mps0, gates, dt, t, observables...; effect! = meffect!, cutoff = 1E-8)
     result = solvetrajectories(r_f, traj)
     res = traj_mean(result)
     return 0:dt:t, res[1, :]
@@ -120,11 +120,11 @@ end
     effect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
     observables = [state -> entanglement(d, L, state, half)]
     Random.seed!(rng_seed)
-    r_k = krylovevolve(state, H, dt, t, 5, observables; effect!)
+    r_k = krylovevolve(state, H, dt, t, 5, observables...; effect!)
     r1 = r_k[1, :]
     effect! = measuresitesrandomly!(L, nop(d), msr_prob)
     Random.seed!(rng_seed)
-    r_k = krylovevolve(state, H, dt, t, 5, observables; effect!)
+    r_k = krylovevolve(state, H, dt, t, 5, observables...; effect!)
     r2 = r_k[1, :]
     @test norm(r2 - r1) + 1 ≈ 1.0
 end

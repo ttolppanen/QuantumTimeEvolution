@@ -21,9 +21,9 @@ gates = bosehubbardgates(siteinds(mps0), dt; U, J)
 n = singlesite_n(d, L, target)
 observables = [state -> expval(state, n)]
 observables_mps = [state -> expval(state, "N"; sites=3)]
-r_exact = exactevolve(state0, U_op, dt, t, observables)
-r_krylov = krylovevolve(state0, H, dt, t, 10, observables)
-r_mps = mpsevolve(mps0, gates, dt, t, observables_mps)
+r_exact = exactevolve(state0, U_op, dt, t, observables...)
+r_krylov = krylovevolve(state0, H, dt, t, 10, observables...)
+r_mps = mpsevolve(mps0, gates, dt, t, observables_mps...)
 
 x_t = (0:dt:t) / (pi / J_e)
 pl = plot(x_t, r_exact[1, :], label="exact", title = "U = $(U), J = $(J) (MPS fails because dt too small)")

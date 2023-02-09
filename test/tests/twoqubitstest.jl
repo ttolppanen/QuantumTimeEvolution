@@ -15,9 +15,13 @@ mps0 = MPS(Vector(state), indices)
 H = bosehubbard(d, L)
 U_op = exp(-im * dt * Matrix(H))
 gates = bosehubbardgates(siteinds(mps0), dt)
-r_exact = exactevolve(state, U_op, dt, t)
-r_krylov = krylovevolve(state, H, dt, t, k)
-r_mps = mpsevolve(mps0, gates, dt, t)
+ntot = nall(d, L)
+n = singlesite_n(d, L, one_boson_site)
+observables = [norm, state -> expval(state, ntot), state -> expval(state, n)]
+mps_observables = [norm, state -> sum(expval(state, "N")), state -> expval(state, "N"; sites = 2)]
+r_exact = exactevolve(state, U_op, dt, t, observables)
+r_krylov = krylovevolve(state, H, dt, t, k, observables)
+r_mps = mpsevolve(mps0, gates, dt, t, mps_observables)
 r_all = [r_exact, r_krylov, r_mps]
 
 @testset "Initial State Unaffected" begin
@@ -27,21 +31,19 @@ end
 
 @testset "Normalization" begin
     for r in r_all
-        @test all([norm(state) ≈ 1.0 for state in r]) #norm should be one
+        @test all([r_i ≈ 1.0 for r_i in r[1, :]]) #norm should be one
     end
 end
 
 @testset "Total Boson Number" begin
-    ntot = nall(d, L)
-    @test all([val ≈ 1.0 for val in expval(r_exact, ntot)])
-    @test all([val ≈ 1.0 for val in expval(r_krylov, ntot)])
-    @test all([sum(val) ≈ 1.0 for val in expval(r_mps, "N")])
+    for r in r_all
+        @test all([val ≈ 1.0 for val in r[2, :]])
+    end
 end
 
 @testset "First Site Boson Number" begin
-    n = singlesite_n(d, L, one_boson_site)
     x_t = (0:dt:t) / pi
-    n_res = [expval(r_exact, n), expval(r_krylov, n), expval(r_mps, "N"; sites=2)]
+    n_res = [r_exact[3, :], r_krylov[3, :], r_mps[3, :]]
     pl = plot(x_t, n_res[1], label="exact", title = "J = 1")
     plot!(pl, x_t, n_res[2], linestyle=:dash, label="krylov")
     plot!(pl, x_t, n_res[3], linestyle=:dashdot, label="MPS")

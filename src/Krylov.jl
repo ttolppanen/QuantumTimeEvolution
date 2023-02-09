@@ -10,9 +10,11 @@ export krylov_error_estimate
 # H : the Hamiltonian;
 # t : total time the simulation needs to run;
 # dt : time step;
+# k : krylov subdimension;
+# observables : Array of observables to calculate; These should be functions with a single argument, the state, and which return a real number.
 # pa_k : PA_krylov; pre-allocated matrices/vectors needed in the algorithm
 # effect! : function with one argument, the state; something to do to the state after each timestep
-# savelast : set true if you only need the last value of the time-evolution
+# save_before_effect : if you want to calculate observables before effect;
 
 # d : statevector dimension;
 struct PA_krylov{T}
@@ -27,23 +29,27 @@ struct PA_krylov{T}
     end
 end
 
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer; kwargs...)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, observables; kwargs...)
     pa_k = PA_krylov(length(state0), k)
-    return krylovevolve(state0, H, dt, t, k, pa_k; kwargs...)
+    return krylovevolve(state0, H, dt, t, k, observables, pa_k; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov; effect! = nothing, savelast::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, observables, pa_k::PA_krylov; effect! = nothing, save_before_effect::Bool = false)
     if k < 2 throw(ArgumentError("k <= 1")) end
-    apply_effect = !isa(effect!, Nothing)
-    out = savelast ? [complex(zeros(size(state0)))] : [complex(zeros(size(state0))) for _ in 0:dt:t]
-    out[1] .= Vector(state0)
+    apply_effect_first = !isa(effect!, Nothing) && !save_before_effect
+    apply_effect_last = !isa(effect!, Nothing) && save_before_effect
+    state = Vector(copy(state0))
+    out = zeros(length(observables), length(0:dt:t))
+    out[:, 1] .= [obs(state) for obs in observables]
     for i in 2:length(0:dt:t)
-        prev_state = savelast ? out[1] : out[i-1]
-        state = savelast ? out[1] : out[i]
-        krylovsubspace!(prev_state, H, k, pa_k) # makes changes into pa_k
-        if !all(isfinite, pa_k.H_k) throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) end
+        krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
+        if !all(isfinite, pa_k.H_k) 
+            throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
+        end
         mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
         normalize!(state)
-        if apply_effect effect!(state) end
+        if apply_effect_first effect!(state) end
+        out[:, i] .= [obs(state) for obs in observables]
+        if apply_effect_last effect!(state) end
     end
     return out
 end

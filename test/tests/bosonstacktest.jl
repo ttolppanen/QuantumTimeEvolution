@@ -18,15 +18,17 @@ H = bosehubbard(d, L; U, J)
 U_op = exp(-im * dt * Matrix(H))
 gates = bosehubbardgates(siteinds(mps0), dt; U, J)
 
-r_exact = exactevolve(state0, U_op, dt, t)
-r_krylov = krylovevolve(state0, H, dt, t, 10)
-r_mps = mpsevolve(mps0, gates, dt, t)
-
 n = singlesite_n(d, L, target)
+observables = [state -> expval(state, n)]
+observables_mps = [state -> expval(state, "N"; sites=3)]
+r_exact = exactevolve(state0, U_op, dt, t, observables)
+r_krylov = krylovevolve(state0, H, dt, t, 10, observables)
+r_mps = mpsevolve(mps0, gates, dt, t, observables_mps)
+
 x_t = (0:dt:t) / (pi / J_e)
-pl = plot(x_t, expval(r_exact, n), label="exact", title = "U = $(U), J = $(J) (MPS fails because dt too small)")
-plot!(pl, x_t, expval(r_krylov, n), label="krylov")
-plot!(pl, x_t, expval(r_mps, "N"; sites=3), label="mps")
+pl = plot(x_t, r_exact[1, :], label="exact", title = "U = $(U), J = $(J) (MPS fails because dt too small)")
+plot!(pl, x_t, r_krylov[1, :], label="krylov")
+plot!(pl, x_t, r_mps[1, :], label="mps")
 plot!(pl, x_t, x -> N * (cos(x * pi)^2), label="analytical", linestyle = :dash)
 saveplot(pl, "bosonstack")
 @test true

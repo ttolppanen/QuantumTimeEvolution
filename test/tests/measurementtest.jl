@@ -21,24 +21,24 @@
     msrop_tensor = measurementoperators(op_to_msr, siteinds(mps0))
     meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
     meffect_t!(state) = measuresitesrandomly!(state, msrop_tensor, msr_prob)
-    Random.seed!(rng_seed) #Makes the rng the same
+    Random.seed!(rng_seed) # Makes the rng the same
     r_exact = exactevolve(state0, U_op, dt, t; effect! = meffect!)
-    Random.seed!(rng_seed) #Makes the rng the same
+    Random.seed!(rng_seed) # Makes the rng the same
     r_krylov = krylovevolve(state0, H, dt, t, 4; effect! = meffect!)
-    Random.seed!(rng_seed) #Makes the rng the same
+    Random.seed!(rng_seed) # Makes the rng the same
     r_mps = mpsevolve(mps0, gates, dt, t; effect! = meffect_t!)
     plot_x = 0:dt:t
     @testset "Normalization" begin
-        @test all([norm(state) ≈ 1.0 for state in r_exact]) #norm should be one
+        @test all([norm(state) ≈ 1.0 for state in r_exact]) # norm should be one
         @test all([norm(state) ≈ 1.0 for state in r_krylov])
         @test all([norm(state) ≈ 1.0 for state in r_mps])
     end
     @testset "First Site Boson Number" begin
-        #with mps, the first site is the last site?
-        #So here this shouldnt work, since the measurements happen
-        #to the wrong sites (There was a measurement on the first
-        #site -> msr on the last site for mps). But since the state is
-        #symmetrical, it works.
+        # with mps, the first site is the last site?
+        # So here this shouldnt work, since the measurements happen
+        # to the wrong sites (There was a measurement on the first
+        # site -> msr on the last site for mps). But since the state is
+        # symmetrical, it works.
 
         n1 = singlesite_n(d, L, 1)
         pl = plot(plot_x, expval(r_exact, n1), label="exact")
@@ -63,13 +63,13 @@ function calc_ent_traj(msr_prob)
 end
 @testset "Trajectories" begin
     rng_seed = 3
-    Random.seed!(rng_seed) #Makes the rng the same
+    Random.seed!(rng_seed) # Makes the rng the same
     t, res = calc_ent_traj(0.01)
     pl = plot(t, res, label="0.01")
-    Random.seed!(rng_seed) #Makes the rng the same
+    Random.seed!(rng_seed) # Makes the rng the same
     t, res = calc_ent_traj(0.15)
     plot!(pl, t, res, label="0.15")
-    Random.seed!(rng_seed) #Makes the rng the same
+    Random.seed!(rng_seed) # Makes the rng the same
     t, res = calc_ent_traj(0.3)
     plot!(pl, t, res, label="0.3")
     saveplot(pl, "traj_entanglement")

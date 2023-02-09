@@ -2,38 +2,27 @@
 # include("Utility/SplitKwargs.jl")
 
 export mpsevolve
-export mpsevolvefunc
 export bosehubbardgates
 
 # mps0 : initial state;
 # H : the Hamiltonian;
 # t : total time the simulation needs to run;
 # dt : time step;
+# observables : Array of observables to calculate; These should be functions with a single argument, the state, and which return a real number.
 # effect! : function with one argument, the state; something to do to the state after each timestep
-# savelast : set true if you only need the last value of the time-evolution
+# save_before_effect : if you want to calculate observables before effect;
 
-function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real; effect! = nothing, savelast::Bool = false, kwargs...) #keyword arguments for ITensors.apply
-    out = [deepcopy(mps0)]
-    for _ in dt:dt:t
-        if savelast
-            out[1] = apply(gates, out[1]; normalize = true, kwargs...)
-        else
-            push!(out, apply(gates, out[end]; normalize = true, kwargs...))
-        end
-        !isa(effect!, Nothing) ? effect!(out[end]) : nothing
-    end
-    return out
-end
-function mpsevolvefunc(mps0::MPS, gates::Vector{ITensor}, steps::Int, funcs_to_calc...; effect! = nothing, kwargs...) #keyword arguments for ITensors.apply
-    out = zeros(steps + 1, length(funcs_to_calc))
+function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observables; effect! = nothing, save_before_effect::Bool = false, kwargs...) #keyword arguments for ITensors.apply
+    apply_effect_first = !isa(effect!, Nothing) && !save_before_effect
+    apply_effect_last = !isa(effect!, Nothing) && save_before_effect
     state = deepcopy(mps0)
-    out[1, :] = [func(state) for func in funcs_to_calc]
-    for i in 2:(steps + 1)
+    out = zeros(length(observables), length(0:dt:t))
+    out[:, 1] .= [obs(state) for obs in observables]
+    for i in 2:length(0:dt:t)
         state = apply(gates, state; normalize = true, kwargs...)
-        !isa(effect!, Nothing) ? effect!(state) : nothing
-        for func in funcs_to_calc
-            out[i, :] = [func(state) for func in funcs_to_calc]
-        end
+        if apply_effect_first effect!(state) end
+        out[:, i] .= [obs(state) for obs in observables]
+        if apply_effect_last effect!(state) end
     end
     return out
 end

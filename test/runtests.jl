@@ -16,5 +16,6 @@ include("tests/twoqubitstest.jl")
 include("tests/bosonstacktest.jl")
 include("tests/trotterodertest.jl")
 include("tests/measurementtest.jl")
+include("tests/savebeforeaftertest.jl")
 # include("tests/typetest.jl") states are not returned anymore, so testing this doesn't make sense anymore.
 # include("tests/savelasttest.jl") doesnt exit anymore...

@@ -19,6 +19,7 @@ function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Numbe
     out[:, 1] .= [obs(state) for obs in observables]
     for i in 2:length(0:dt:t)
         state .= U * state
+        normalize!(state)
         if apply_effect_first effect!(state) end
         out[:, i] .= [obs(state) for obs in observables]
         if apply_effect_last effect!(state) end

@@ -33,14 +33,15 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     pa_k = PA_krylov(length(state0), k)
     return krylovevolve(state0, H, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...; effect! = nothing, save_before_effect::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...; effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
     if k < 2 throw(ArgumentError("k <= 1")) end
     apply_effect_first = !isa(effect!, Nothing) && !save_before_effect
     apply_effect_last = !isa(effect!, Nothing) && save_before_effect
     state = Vector(copy(state0))
-    out = zeros(length(observables), length(0:dt:t))
+    out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), length(0:dt:t))
     out[:, 1] .= [obs(state) for obs in observables]
-    for i in 2:length(0:dt:t)
+    steps = length(0:dt:t)
+    for i in 2:steps
         krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
         if !all(isfinite, pa_k.H_k) 
             throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
@@ -48,7 +49,13 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
         mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
         normalize!(state)
         if apply_effect_first effect!(state) end
-        out[:, i] .= [obs(state) for obs in observables]
+        if save_only_last
+            if i == steps
+                out[:, 1] .= [obs(state) for obs in observables]
+            end
+        else
+            out[:, i] .= [obs(state) for obs in observables]
+        end
         if apply_effect_last effect!(state) end
     end
     return out

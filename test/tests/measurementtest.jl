@@ -55,6 +55,52 @@
     @test true
 end
 
+function make_projections_to_zeroes(d, L)
+    out = []
+    m = n_bosons_projector(d, 0)
+    for i in 1:L
+        push!(out, singlesite(m, L, i))
+    end
+    return out
+end
+
+@testset "random_predetermined_measurement!" begin
+    d = 3; L = 3
+    dt = 0.1; t = 5
+    msr_prob = 0.1
+    rng_seed = 4
+    state0 = zeroone(d, L)
+    H = bosehubbard(d, L)
+
+    op_to_msr = nop(d)
+    msrop = measurementoperators(op_to_msr, L)
+    proj_op = make_projections_to_zeroes(d, L)
+
+    n = nall(d, L)
+    observables = [norm, state -> expval(state, n)]
+    Random.seed!(rng_seed) # Makes the rng the same
+    proj_prob = 0.0
+    r_krylov_1 = krylovevolve(state0, H, dt, t, 4, observables...; effect! = state -> random_predetermined_measurement!(state, msrop, msr_prob, proj_op, proj_prob))
+    
+    Random.seed!(rng_seed) # Makes the rng the same
+    proj_prob = 1.0
+    r_krylov_2 = krylovevolve(state0, H, dt, t, 4, observables...; effect! = state -> random_predetermined_measurement!(state, msrop, msr_prob, proj_op, proj_prob))
+
+    plot_x = 0:dt:t
+    @testset "Normalization" begin
+        for r in [r_krylov_1, r_krylov_2]
+            @test all([val ≈ 1.0 for val in r[1, :]]) # norm should be on
+        end
+    end
+    @testset "Total boson number" begin
+        pl = plot(plot_x, r_krylov_1[2, :], label="r = 0")
+        plot!(pl, plot_x, r_krylov_2[2, :], label="r = 1")
+        saveplot(pl, "random_predetermined_bosonnumber")
+        @test true
+    end
+    @test true
+end
+
 function traj_mean(result)
     out = zeros(size(result[1]))
     for traj in result

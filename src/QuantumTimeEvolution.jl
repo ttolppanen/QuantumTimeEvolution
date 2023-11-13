@@ -9,6 +9,7 @@ using QuantumOperators
 
 #internal
 include("Utility/SplitKwargs.jl")
+include("TimeEvolve.jl")
 
 #export
 include("Exact.jl")

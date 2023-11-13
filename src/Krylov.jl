@@ -35,30 +35,19 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
 end
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...; effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
     if k < 2 throw(ArgumentError("k <= 1")) end
-    apply_effect_first = !isa(effect!, Nothing) && !save_before_effect
-    apply_effect_last = !isa(effect!, Nothing) && save_before_effect
-    state = Vector(copy(state0))
-    out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), length(0:dt:t))
-    out[:, 1] .= [obs(state) for obs in observables]
     steps = length(0:dt:t)
-    for i in 2:steps
-        krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
-        if !all(isfinite, pa_k.H_k) 
-            throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
-        end
-        mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
-        normalize!(state)
-        if apply_effect_first effect!(state) end
-        if save_only_last
-            if i == steps
-                out[:, 1] .= [obs(state) for obs in observables]
-            end
-        else
-            out[:, i] .= [obs(state) for obs in observables]
-        end
-        if apply_effect_last effect!(state) end
+    evolve_time_step!(state) = krylov_time_step!(state, H, k, pa_k, dt)
+    state = Vector(copy(state0))
+    return timeevolve!(state, evolve_time_step!, steps, observables...; effect!, save_before_effect, save_only_last)
+end
+
+function krylov_time_step!(state, H, k, pa_k, dt)
+    krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
+    if !all(isfinite, pa_k.H_k) 
+        throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
     end
-    return out
+    mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
+    normalize!(state)
 end
 
 # here H_k, U and z are pre-allocated

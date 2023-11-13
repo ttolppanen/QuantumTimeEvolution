@@ -12,7 +12,7 @@
     msr_prob = 0.1
     rng_seed = 5
     state0 = zeroone(d, L)
-    mps0 = zeroonemps(d, L)
+    mps0 = onezeromps(d, L) # reverse order for MPS
     H = bosehubbard(d, L)
     U_op = exp(-im * dt * Matrix(H))
     gates = bosehubbardgates(siteinds(mps0), dt)

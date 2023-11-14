@@ -18,5 +18,6 @@ include("MPS.jl")
 include("Effects.jl")
 include("Trajectories.jl")
 include("MIPT.jl")
+include("FindSubspace.jl")
 
 end # module

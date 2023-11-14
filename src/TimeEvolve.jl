@@ -17,8 +17,8 @@ function timeevolve!(state0, evolve_time_step!::Function, steps::Int, observable
     apply_effect_last = !isa(effect!, Nothing) && save_before_effect
     out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps)
     state = deepcopy(state0)
-    out[:, 1] .= [obs(state) for obs in observables]
     if isa(find_subspace, Nothing) # No subspace
+        out[:, 1] .= [obs(state) for obs in observables]
         for i in 2:steps
             evolve_time_step!(state)
             if apply_effect_first effect!(state) end
@@ -33,18 +33,20 @@ function timeevolve!(state0, evolve_time_step!::Function, steps::Int, observable
         end
         return out
     else # In subspace
+        subspace_indices = find_subspace(state)
+        out[:, 1] .= [obs(state, subspace_indices) for obs in observables]
         for i in 2:steps
-            subspace_indeces = find_subspace(state)
-            evolve_time_step!(state, subspace_indeces)
-            if apply_effect_first effect!(state, subspace_indeces) end
+            subspace_indices = find_subspace(state)
+            evolve_time_step!(state, subspace_indices)
+            if apply_effect_first effect!(state, subspace_indices) end
             if save_only_last
                 if i == steps
-                    out[:, 1] .= [obs(state, subspace_indeces) for obs in observables]
+                    out[:, 1] .= [obs(state, subspace_indices) for obs in observables]
                 end
             else
-                out[:, i] .= [obs(state, subspace_indeces) for obs in observables]
+                out[:, i] .= [obs(state, subspace_indices) for obs in observables]
             end
-            if apply_effect_last effect!(state, subspace_indeces) end
+            if apply_effect_last effect!(state, subspace_indices) end
         end
         return out
     end

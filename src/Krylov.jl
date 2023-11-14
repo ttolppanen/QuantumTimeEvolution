@@ -33,12 +33,17 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     pa_k = PA_krylov(length(state0), k)
     return krylovevolve(state0, H, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...; effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
+function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...;
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, find_subspace = nothing)
+    
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
     evolve_time_step!(state) = krylov_time_step!(state, H, k, pa_k, dt)
+    if !isa(find_subspace, Nothing)
+        evolve_time_step!(state, subspace_indices) = krylov_time_step_subspace!(state, H, k, pa_k, dt, subspace_indices)
+    end
     state = Vector(copy(state0))
-    return timeevolve!(state, evolve_time_step!, steps, observables...; effect!, save_before_effect, save_only_last)
+    return timeevolve!(state, evolve_time_step!, steps, observables...; effect!, save_before_effect, save_only_last, find_subspace)
 end
 
 function krylov_time_step!(state, H, k, pa_k, dt)
@@ -49,9 +54,18 @@ function krylov_time_step!(state, H, k, pa_k, dt)
     mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
     normalize!(state)
 end
+function krylov_time_step_subspace!(state, H, k, pa_k, dt, subspace_indices)
+    krylovsubspace_in_subspace!(state, H, k, pa_k, subspace_indices) # makes changes into pa_k
+    if !all(isfinite, pa_k.H_k)
+        throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
+    end
+    subspace_size = length(subspace_indices)
+    @views mul!(state[subspace_indices], pa_k.U[1:subspace_size, :], (exp(-1im * dt * pa_k.H_k)[:, 1]))
+    normalize!(@view(state[subspace_indices]))
+end
 
 # here H_k, U and z are pre-allocated
-function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
+function krylovsubspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
     # doesnt check if HΨ = 0
     U[:, 1] .= state
     mul!(z, H, state)
@@ -71,8 +85,12 @@ function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k
         H_k[j, j - 1] = beta
     end
 end
-function krylovsubspace!(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov)
+function krylovsubspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov)
     krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)
+end
+function krylovsubspace_in_subspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov, subspace_indices::Vector{<:Integer})
+    dim = length(subspace_indices)
+    @views krylovsubspace!(state[subspace_indices], H[subspace_indices, subspace_indices], k, pa_k.H_k, pa_k.U[1:dim, :], pa_k.z[1:dim])
 end
 function krylovsubspace(state::Vector{<:Number}, H::AbstractMatrix{<:Number}, k::Integer)
     pa_k = PA_krylov(length(state), k)

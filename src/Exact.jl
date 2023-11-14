@@ -15,9 +15,8 @@ function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Numbe
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, find_subspace = nothing)
 
     steps = length(0:dt:t)
-    if isa(find_subspace, Nothing)
-        evolve_time_step!(state) = exact_time_step!(state, U)
-    else
+    evolve_time_step!(state) = exact_time_step!(state, U)
+    if !isa(find_subspace, Nothing)
         evolve_time_step!(state, subspace_indeces) = exact_time_step_subspace!(state, U, subspace_indeces)
     end
     state = copy(state0)
@@ -28,7 +27,7 @@ function exact_time_step!(state, U)
     state .= U * state
     normalize!(state)
 end
-function exact_time_step_subspace!(state, U, subspace_indeces)
-    @views state[subspace_indeces] .= U[subspace_indeces, subspace_indeces] * state[subspace_indeces]
-    normalize!(@view state[subspace_indeces])
+function exact_time_step_subspace!(state, U, subspace_indices)
+    @views state[subspace_indices] .= U[subspace_indices, subspace_indices] * state[subspace_indices]
+    normalize!(@view(state[subspace_indices]))
 end

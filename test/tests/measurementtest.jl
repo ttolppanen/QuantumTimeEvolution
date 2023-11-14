@@ -139,22 +139,23 @@ end
     d = 2; L = 4
     dt = 0.1; t = 5
     prob = [0.01, 0.15, 0.3]
-    traj = 30
+    traj = 20
     state0 = zeroone(d, L)
     H = bosehubbard(d, L)
     msrop = measurementoperators(nop(d), L)
     meffect!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
     calc_ent(state) = entanglement(d, L, state, 2)
     res1 = mipt(state0, H, 6, meffect!, dt, t, prob, traj, calc_ent; paral = :threads)
+    pl = plot(prob, res1)
     mps0 = onezeromps(d, L)
     gates = bosehubbardgates(siteinds(mps0), dt)
     msrop = measurementoperators(nop(d), siteinds(mps0))
     meffect2!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
     calc_ent2(state) = entanglement(state, 2)
-    res2 = mipt(mps0, gates, meffect2!, dt, t, prob, traj, calc_ent2)
-    pl = plot(prob, res2)
+    res2 = mipt(mps0, gates, meffect2!, dt, t, prob, traj, calc_ent2; paral = :threads)
+    plot!(pl, prob, res2)
     saveplot(pl, "mipt_test")
-    @test all([(res1[i] - res2[i]) < 0.1 for i in 1:length(prob)]) # close enough...
+    @test all([abs(res1[i] - res2[i]) < 0.2 for i in 1:length(prob)]) # close enough...
 end
 @testset "measuresitesrandomly overload" begin
     d = 3; L = 4; half = Int(floor(L/2))

@@ -13,11 +13,10 @@ function saveplot(pl, name)
 end
 
 
-# include("tests/twoqubitstest.jl")
-# include("tests/bosonstacktest.jl")
-# include("tests/trotterodertest.jl")
-# include("tests/measurementtest.jl")
-# include("tests/savebeforeaftertest.jl")
-# include("tests/savelasttest.jl")
-include("tests/subspacetest.jl")
+include("tests/twoqubitstest.jl")
+include("tests/bosonstacktest.jl")
+include("tests/trotterodertest.jl")
+include("tests/measurementtest.jl")
+include("tests/savebeforeaftertest.jl")
+include("tests/savelasttest.jl")
 # include("tests/typetest.jl") states are not returned anymore, so testing this doesn't make sense anymore.

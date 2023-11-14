@@ -19,7 +19,8 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observa
 end
 
 function mps_time_step!(state, gates; kwargs...)
-    state .= apply(gates, state; normalize = true, kwargs...) # here the .= was required for this to work, but it doesn't make sense! If there is weird behaviour, check this.
+    state .= apply(gates, state; kwargs...) # here the .= was required for this to work, but it doesn't make sense! If there is weird behaviour, check this.
+    normalize!(state)
 end
 
 # The expansion is 2k-th order by default

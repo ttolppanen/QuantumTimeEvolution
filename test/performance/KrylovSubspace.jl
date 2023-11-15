@@ -4,7 +4,7 @@ using QuantumTimeEvolution
 using PlotAndSave
 
 function f()
-    d = 3; L = 7;
+    d = 3; L = 6;
     dt = 0.02; t = 1.0; k = 6
     state = allone(d, L)
     H = bosehubbard(d, L)
@@ -13,7 +13,8 @@ function f()
     observables = [state -> expval(state, n), state -> expval(state, n1)]
     lines = []
 
-    @profview r = krylovevolve(state, H, dt, t, k, observables...)
+    r = krylovevolve(state, H, dt, t, k, observables...)
+    @time r = krylovevolve(state, H, dt, t, k, observables...)
     # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "no_subspace, n"))
     # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "no_subspace, n1"))
 
@@ -24,7 +25,8 @@ function f()
     n1 = perm_mat * n1 * perm_mat'
     observables = [(state, indices) -> expval(state, n, indices), (state, indices) -> expval(state, n1, indices)]
     finder(state) = find_subspace(state, ranges)
-    @profview r = krylovevolve(state, H, dt, t, k, observables...; find_subspace = finder)
+    r = krylovevolve(state, H, dt, t, k, observables...; find_subspace = finder)
+    @time r = krylovevolve(state, H, dt, t, k, observables...; find_subspace = finder)
     # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
     # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
 
@@ -32,4 +34,4 @@ function f()
     # makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
-f()
+f();

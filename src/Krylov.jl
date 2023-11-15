@@ -40,7 +40,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     steps = length(0:dt:t)
     evolve_time_step!(state) = krylov_time_step!(state, H, k, pa_k, dt)
     if !isa(find_subspace, Nothing)
-        evolve_time_step!(state, subspace_indices) = krylov_time_step_subspace!(state, H, k, pa_k, dt, subspace_indices)
+        evolve_time_step!(state, subspace_id, subspace_indices) = krylov_time_step_subspace!(state, H, k, pa_k, dt, subspace_id, subspace_indices)
     end
     state = Vector(copy(state0))
     return timeevolve!(state, evolve_time_step!, steps, observables...; effect!, save_before_effect, save_only_last, find_subspace)
@@ -54,7 +54,7 @@ function krylov_time_step!(state, H, k, pa_k, dt)
     mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
     normalize!(state)
 end
-function krylov_time_step_subspace!(state, H, k, pa_k, dt, subspace_indices)
+function krylov_time_step_subspace!(state, H, k, pa_k, dt, subspace_id, subspace_indices)
     krylovsubspace_in_subspace!(state, H, k, pa_k, subspace_indices) # makes changes into pa_k
     if !all(isfinite, pa_k.H_k)
         throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 

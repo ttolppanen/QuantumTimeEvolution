@@ -39,26 +39,26 @@ function timeevolve!(state0, evolve_time_step!::Function, steps::Int, observable
         end
         return out
     else # In subspace
-        subspace_indices = find_subspace(state)
+        subspace_id, subspace_indices = find_subspace(state)
         for (j, obs) in pairs(observables)
-            out[j, 1] = obs(state, subspace_indices)
+            out[j, 1] = obs(state, subspace_id, subspace_indices)
         end
         for i in 2:steps
-            subspace_indices = find_subspace(state)
-            evolve_time_step!(state, subspace_indices)
-            if apply_effect_first effect!(state, subspace_indices) end
+            subspace_id, subspace_indices = find_subspace(state)
+            evolve_time_step!(state, subspace_id, subspace_indices)
+            if apply_effect_first effect!(state, subspace_id, subspace_indices) end
             if save_only_last
                 if i == steps
                     for (j, obs) in pairs(observables)
-                        out[j, 1] = obs(state, subspace_indices)
+                        out[j, 1] = obs(state, subspace_id, subspace_indices)
                     end
                 end
             else
                 for (j, obs) in pairs(observables)
-                    out[j, i] = obs(state, subspace_indices)
+                    out[j, i] = obs(state, subspace_id, subspace_indices)
                 end
             end
-            if apply_effect_last effect!(state, subspace_indices) end
+            if apply_effect_last effect!(state, subspace_id, subspace_indices) end
         end
         return out
     end

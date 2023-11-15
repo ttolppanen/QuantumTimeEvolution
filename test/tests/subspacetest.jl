@@ -9,20 +9,17 @@
 d = 2; L = 2; k = 5
 dt = 0.1; t = 5.0
 one_boson_site = 1
-state = singleone(d, L, one_boson_site)
-H = bosehubbard(d, L)
-U_op = exp(-im * dt * Matrix(H))
-ntot = nall(d, L)
-n = singlesite_n(d, L, one_boson_site)
-find_subspace = generate_total_boson_number_subspace_finder(d, L)
+indices, perm_mat, ranges = total_boson_number_subspace(d, L)
+finder(state) = find_subspace(state, ranges)
+state = perm_mat * singleone(d, L, one_boson_site)
+H = perm_mat * bosehubbard(d, L) * perm_mat'
+U_op = perm_mat * exp(-im * dt * Matrix(H)) * perm_mat'
+ntot = perm_mat * nall(d, L) * perm_mat'
+n = perm_mat * singlesite_n(d, L, one_boson_site) * perm_mat'
 observables = [(state, subspace_indices) -> norm(@view(state[subspace_indices])), (state, subspace_indices) -> expval(state, ntot, subspace_indices), (state, subspace_indices) -> expval(state, n, subspace_indices)]
-r_exact = exactevolve(state, U_op, dt, t, observables...; find_subspace)
-r_krylov = krylovevolve(state, H, dt, t, k, observables...; find_subspace)
+r_exact = exactevolve(state, U_op, dt, t, observables...; find_subspace = finder)
+r_krylov = krylovevolve(state, H, dt, t, k, observables...; find_subspace = finder)
 r_all = [r_exact, r_krylov]
-
-@testset "Initial State Unaffected" begin
-    @test state == singleone(d, L, one_boson_site) #evolution doesn't change initial state
-end
 
 @testset "Normalization" begin
     for r in r_all

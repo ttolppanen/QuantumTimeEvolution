@@ -149,6 +149,12 @@ git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 version = "1.15.0"
 
+[[deps.DataStructures]]
+deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
+git-tree-sha1 = "3dbd312d370723b6bb43ba9d02fc36abade4518d"
+uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+version = "0.18.15"
+
 [[deps.DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
 uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
@@ -459,10 +465,10 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[deps.NDTensors]]
-deps = ["Adapt", "BlockArrays", "Compat", "Dictionaries", "FLoops", "Folds", "Functors", "HDF5", "InlineStrings", "LinearAlgebra", "Random", "Requires", "SimpleTraits", "SplitApplyCombine", "StaticArrays", "Strided", "StridedViews", "TimerOutputs", "TupleTools"]
-git-tree-sha1 = "7f33cc99a6c729c0d2a0e76da281bd5a5cf795e1"
+deps = ["Adapt", "BlockArrays", "Compat", "Dictionaries", "FLoops", "Folds", "Functors", "HDF5", "InlineStrings", "LinearAlgebra", "PackageExtensionCompat", "Random", "SimpleTraits", "SplitApplyCombine", "StaticArrays", "Strided", "StridedViews", "TimerOutputs", "TupleTools"]
+git-tree-sha1 = "d551ac05c98f8e4f333bb924edcb7b9a158c0d40"
 uuid = "23ae76d9-e61a-49c4-8f12-3f1a16adf9cf"
-version = "0.2.20"
+version = "0.2.21"
 
 [[deps.NameResolution]]
 deps = ["PrettyPrint"]
@@ -554,12 +560,12 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
-deps = ["ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "94cdd83b715658f4d99dec372db13b9cec5ce2ef"
+deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "5fcd9dbe7c3fe62887cb091963331e7949a9b77c"
 repo-rev = "master"
 repo-url = "https://github.com/ttolppanen/QuantumOperators.git"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.15"
+version = "0.1.17"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]

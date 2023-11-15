@@ -944,10 +944,10 @@ uuid = "c0090381-4147-56d7-9ebc-da0b1113ec56"
 version = "6.5.3+1"
 
 [[deps.QuantumOperators]]
-deps = ["ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
+deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
 path = "../../../QuantumOperators"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.15"
+version = "0.1.17"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]

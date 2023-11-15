@@ -18,33 +18,45 @@ function timeevolve!(state0, evolve_time_step!::Function, steps::Int, observable
     out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps)
     state = deepcopy(state0)
     if isa(find_subspace, Nothing) # No subspace
-        out[:, 1] .= [obs(state) for obs in observables]
+        for (j, obs) in pairs(observables)
+            out[j, 1] = obs(state)
+        end
         for i in 2:steps
             evolve_time_step!(state)
             if apply_effect_first effect!(state) end
             if save_only_last
                 if i == steps
-                    out[:, 1] .= [obs(state) for obs in observables]
+                    for (j, obs) in pairs(observables)
+                        out[j, 1] = obs(state)
+                    end
                 end
             else
-                out[:, i] .= [obs(state) for obs in observables]
+                for (j, obs) in pairs(observables)
+                    out[j, i] = obs(state)
+                end
             end
             if apply_effect_last effect!(state) end
         end
         return out
     else # In subspace
         subspace_indices = find_subspace(state)
-        out[:, 1] .= [obs(state, subspace_indices) for obs in observables]
+        for (j, obs) in pairs(observables)
+            out[j, 1] = obs(state, subspace_indices)
+        end
         for i in 2:steps
             subspace_indices = find_subspace(state)
             evolve_time_step!(state, subspace_indices)
             if apply_effect_first effect!(state, subspace_indices) end
             if save_only_last
                 if i == steps
-                    out[:, 1] .= [obs(state, subspace_indices) for obs in observables]
+                    for (j, obs) in pairs(observables)
+                        out[j, 1] = obs(state, subspace_indices)
+                    end
                 end
             else
-                out[:, i] .= [obs(state, subspace_indices) for obs in observables]
+                for (j, obs) in pairs(observables)
+                    out[j, i] = obs(state, subspace_indices)
+                end
             end
             if apply_effect_last effect!(state, subspace_indices) end
         end

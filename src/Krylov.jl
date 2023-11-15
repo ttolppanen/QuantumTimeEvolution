@@ -88,7 +88,7 @@ end
 function krylovsubspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov)
     krylovsubspace!(state, H, k, pa_k.H_k, pa_k.U, pa_k.z)
 end
-function krylovsubspace_in_subspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov, subspace_indices::Vector{<:Integer})
+function krylovsubspace_in_subspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, pa_k::PA_krylov, subspace_indices::AbstractVector{<:Integer})
     dim = length(subspace_indices)
     @views krylovsubspace!(state[subspace_indices], H[subspace_indices, subspace_indices], k, pa_k.H_k, pa_k.U[1:dim, :], pa_k.z[1:dim])
 end

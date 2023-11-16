@@ -12,35 +12,20 @@ export exactevolve
 # save_before_effect : if you want to calculate observables before effect;
 
 function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; 
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, find_subspace = nothing)
 
     steps = length(0:dt:t)
-    initialize(state0) = return copy(state0)
-    time_step_funcs = []
-    function take_time_step(state)
-        exact_time_step!(state, U)
-        return state
+    evolve_time_step!(state) = exact_time_step!(state, U)
+    if !isa(find_subspace, Nothing)
+        evolve_time_step!(state, subspace_indeces) = exact_time_step_subspace!(state, U, subspace_indeces)
     end
-    push!(time_step_funcs, take_time_step)
-    if isa(effect!, Nothing)
-        function do_effect(state)
-            effect!(state)
-            return state
-        end
-        if save_before_effect
-            push!(time_step_funcs, :calc_obs)
-            push!(time_step_funcs, do_effect)
-        else
-            push!(time_step_funcs, do_effect)
-            push!(time_step_funcs, :calc_obs)
-        end
-    else
-        push!(time_step_funcs, :calc_obs)
-    end
-        
-    return timeevolve!(state0, initialize, time_step_funcs, steps, observables...; save_only_last)
+    state = copy(state0)
+    return timeevolve!(state, evolve_time_step!, steps, observables...; effect!, save_before_effect, save_only_last, find_subspace)
 end
 
+function initial_args(state0)
+    return state0
+end
 function exact_time_step!(state, U)
     state .= U * state
     normalize!(state)

@@ -13,7 +13,9 @@ include("TimeEvolve.jl")
 
 #export
 include("Exact.jl")
+include("ExactSubspace.jl")
 include("Krylov.jl")
+include("KrylovSubspace.jl")
 include("MPS.jl")
 include("Effects.jl")
 include("Trajectories.jl")

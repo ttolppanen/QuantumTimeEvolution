@@ -15,17 +15,20 @@ function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Numbe
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
 
     steps = length(0:dt:t)
-    initialize(state0) = return copy(state0)
-    time_step_funcs = []
+    initialize(state0) = return (copy(state0), )
+    time_step_funcs = [] # functions to run in a single timestep
+
     function take_time_step(state)
-        exact_time_step!(state, U)
-        return state
+        state .= U * state
+        normalize!(state)
+        return (state, )
     end
     push!(time_step_funcs, take_time_step)
-    if isa(effect!, Nothing)
+
+    if !isa(effect!, Nothing)
         function do_effect(state)
             effect!(state)
-            return state
+            return (state, )
         end
         if save_before_effect
             push!(time_step_funcs, :calc_obs)
@@ -34,18 +37,9 @@ function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Numbe
             push!(time_step_funcs, do_effect)
             push!(time_step_funcs, :calc_obs)
         end
-    else
+    else # no effect
         push!(time_step_funcs, :calc_obs)
     end
         
     return timeevolve!(state0, initialize, time_step_funcs, steps, observables...; save_only_last)
-end
-
-function exact_time_step!(state, U)
-    state .= U * state
-    normalize!(state)
-end
-function exact_time_step_subspace!(state, U, subspace_indices)
-    @views state[subspace_indices] .= U[subspace_indices, subspace_indices] * state[subspace_indices]
-    normalize!(@view(state[subspace_indices]))
 end

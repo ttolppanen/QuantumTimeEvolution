@@ -1,7 +1,7 @@
 # using SparseArrays
 # using QuantumOperators
 
-export exactevolve
+# export exactevolve exported already in Exact.jl
 
 # state0 : initial state;
 # H : the Hamiltonian;
@@ -11,26 +11,46 @@ export exactevolve
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # save_before_effect : if you want to calculate observables before effect;
 
-function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; 
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, find_subspace = nothing)
+function exactevolve(state0::AbstractVector{<:Number}, U, find_subspace::Function, dt::Real, t::Real, observables...; 
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
 
     steps = length(0:dt:t)
-    evolve_time_step!(state) = exact_time_step!(state, U)
-    if !isa(find_subspace, Nothing)
-        evolve_time_step!(state, subspace_indeces) = exact_time_step_subspace!(state, U, subspace_indeces)
+    function initialize(state0)
+        id, indices = find_subspace(state0)
+        return Vector(copy(state0)), id, indices # the arguments are for subspace_id, and subspace_range
     end
-    state = copy(state0)
-    return timeevolve!(state, evolve_time_step!, steps, observables...; effect!, save_before_effect, save_only_last, find_subspace)
+    time_step_funcs = [] # functions to run in a single timestep
+
+    function current_subspace(state, id, indices)
+        new_id, new_indices = find_subspace(state)
+        return state, new_id, new_indices
+    end
+    push!(time_step_funcs, current_subspace)
+
+    function take_time_step(state, id, subspace_indices)
+        @views state[subspace_indices] .= U[id] * state[subspace_indices]
+        normalize!(state)
+        return state, id, subspace_indices
+    end
+    push!(time_step_funcs, take_time_step)
+
+    if !isa(effect!, Nothing)
+        if save_before_effect
+            push!(time_step_funcs, :calc_obs)
+            push!(time_step_funcs, effect!)
+        else
+            push!(time_step_funcs, effect!)
+            push!(time_step_funcs, :calc_obs)
+        end
+    else # no effect
+        push!(time_step_funcs, :calc_obs)
+    end
+        
+    return timeevolve!(state0, initialize, time_step_funcs, steps, observables...; save_only_last)
 end
 
-function initial_args(state0)
-    return state0
-end
-function exact_time_step!(state, U)
-    state .= U * state
+function exact_time_step_subspace!(state, U, id, subspace_indices)
+    @views state[subspace_indices] .= U[id] * state[subspace_indices]
     normalize!(state)
-end
-function exact_time_step_subspace!(state, U, subspace_indices)
-    @views state[subspace_indices] .= U[subspace_indices, subspace_indices] * state[subspace_indices]
-    normalize!(@view(state[subspace_indices]))
+    return state, id, subspace_indices
 end

@@ -4,10 +4,9 @@ using QuantumTimeEvolution
 using PlotAndSave
 
 function f()
-    d = 3; L = 6;
+    d = 3; L = 8;
     dt = 0.02; t = 1.0; k = 6
     state = allone(d, L)
-    H = bosehubbard(d, L)
     n = nall(d, L)
     n1 = singlesite_n(d, L, 1)
     observables = [state -> expval(state, n), state -> expval(state, n1)]
@@ -18,15 +17,18 @@ function f()
     # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "no_subspace, n"))
     # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "no_subspace, n1"))
 
-    indices, perm_mat, ranges = total_boson_number_subspace(d, L)
-    state = perm_mat * state
-    H = perm_mat * H * perm_mat'
-    n = perm_mat * n * perm_mat'
-    n1 = perm_mat * n1 * perm_mat'
-    observables = [(state, indices) -> expval(state, n, indices), (state, indices) -> expval(state, n1, indices)]
+    perm_mat, ranges = total_boson_number_subspace_tools(d, L)
+    state .= perm_mat * state
+    H = split_operator(H, perm_mat, ranges)
+    n = split_operator(n, perm_mat, ranges)
+    n1 = split_operator(n1, perm_mat, ranges)
+    observables = [
+        (state, id, range) -> expval(@view(state[range]), n[id]),
+        (state, id, range) -> expval(@view(state[range]), n1[id])]
+
     finder(state) = find_subspace(state, ranges)
-    r = krylovevolve(state, H, dt, t, k, observables...; find_subspace = finder)
-    @time r = krylovevolve(state, H, dt, t, k, observables...; find_subspace = finder)
+    r = krylovevolve(state, H, finder, dt, t, k, observables...)
+    @time r = krylovevolve(state, H, finder, dt, t, k, observables...)
     # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
     # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
 
@@ -34,4 +36,4 @@ function f()
     # makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
-f();
+@profview f()

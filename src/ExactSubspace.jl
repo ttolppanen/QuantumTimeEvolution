@@ -21,12 +21,6 @@ function exactevolve(state0::AbstractVector{<:Number}, U, find_subspace::Functio
     end
     time_step_funcs = [] # functions to run in a single timestep
 
-    function current_subspace(state, id, indices)
-        new_id, new_indices = find_subspace(state)
-        return state, new_id, new_indices
-    end
-    push!(time_step_funcs, current_subspace)
-
     function take_time_step(state, id, subspace_indices)
         @views state[subspace_indices] .= U[id] * state[subspace_indices]
         normalize!(state)

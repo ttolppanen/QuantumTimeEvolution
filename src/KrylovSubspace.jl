@@ -32,12 +32,6 @@ function krylovevolve(state0::AbstractVector{<:Number}, H, find_subspace::Functi
     end
     time_step_funcs = [] # functions to run in a single timestep
 
-    function current_subspace(state, id, indices)
-        new_id, new_indices = find_subspace(state)
-        return state, new_id, new_indices
-    end
-    push!(time_step_funcs, current_subspace)
-
     function take_time_step(state, id, indices)
         dim = length(indices)
         @views krylovsubspace!(state[indices], H[id], k, pa_k.H_k, pa_k.U[1:dim, :], pa_k.z[1:dim])
@@ -51,15 +45,11 @@ function krylovevolve(state0::AbstractVector{<:Number}, H, find_subspace::Functi
     push!(time_step_funcs, take_time_step)
 
     if !isa(effect!, Nothing)
-        function do_effect(state)
-            effect!(state)
-            return (state, )
-        end
         if save_before_effect
             push!(time_step_funcs, :calc_obs)
-            push!(time_step_funcs, do_effect)
+            push!(time_step_funcs, effect!)
         else
-            push!(time_step_funcs, do_effect)
+            push!(time_step_funcs, effect!)
             push!(time_step_funcs, :calc_obs)
         end
     else # no effect

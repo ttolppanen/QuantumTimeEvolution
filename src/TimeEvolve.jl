@@ -17,7 +17,7 @@
 function timeevolve!(state0, initial_args::Function, time_step_funcs, steps::Int, observables...; save_only_last::Bool = false)
     out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps)
     up_out = generate_calc_obs_func(out, observables)
-    args... = initial_args(state0) # initial arguments that are passed on to other functions
+    args = initial_args(state0) # initial arguments that are passed on to other functions
     up_out(1, args...) # state0 observables values
     for i in 2:steps
         for f in time_step_funcs
@@ -30,7 +30,7 @@ function timeevolve!(state0, initial_args::Function, time_step_funcs, steps::Int
                     up_out(i, args...)
                 end
             else
-                args... = f(args...)
+                args = f(args...)
             end
         end
     end

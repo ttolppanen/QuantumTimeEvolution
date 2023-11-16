@@ -561,9 +561,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
 deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "fdfd463af64c09a27c74a82d3bdc035d215dac96"
+git-tree-sha1 = "0837513b77f6e9e5d85f8c19c28d4408b2bd2138"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.18"
+version = "0.1.19"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]

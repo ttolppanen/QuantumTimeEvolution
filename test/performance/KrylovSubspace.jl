@@ -15,7 +15,7 @@ function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_
 end
 
 function f()
-    d = 2; L = 12;
+    d = 2; L = 10;
     dt = 0.02; t = 30.0; k = 6
     state = allone(d, L)
     H = bosehubbard(d, L)
@@ -23,7 +23,7 @@ function f()
     n1 = singlesite_n(d, L, 1)
     observables = [state -> expval(state, n), state -> expval(state, n1)]
 
-    p = 0.0
+    p = 0.01
     msrop = measurementoperators(nop(d), L)
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
     effect!(state) = measurement_and_feedback!(state, msrop, p, feedback)
@@ -38,7 +38,7 @@ function f()
 
     # in subspace
     perm_mat, ranges = total_boson_number_subspace_tools(d, L)
-    finder(state) = find_subspace(state, ranges)
+    finder(state; id_initial_guess = 1) = find_subspace(state, ranges; id_initial_guess, iterate_order = -1)
     state .= perm_mat * state
     H = split_operator(H, perm_mat, ranges)
     n = split_operator(n, perm_mat, ranges)
@@ -59,7 +59,7 @@ function f()
             return state, id, range
         end
         measurement_and_feedback!(state, msrop, p, feedback)
-        id, range = finder(state)
+        id, range = finder(state; id_initial_guess = id)
         return state, id, range
     end
 
@@ -72,4 +72,4 @@ function f()
     makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
-f()
+f();

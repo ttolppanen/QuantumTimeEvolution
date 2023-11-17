@@ -339,9 +339,9 @@ version = "0.2.4"
 
 [[deps.KernelAbstractions]]
 deps = ["Adapt", "Atomix", "InteractiveUtils", "LinearAlgebra", "MacroTools", "PrecompileTools", "Requires", "SparseArrays", "StaticArrays", "UUIDs", "UnsafeAtomics", "UnsafeAtomicsLLVM"]
-git-tree-sha1 = "95063c5bc98ba0c47e75e05ae71f1fed4deac6f6"
+git-tree-sha1 = "b0737cbbe1c8da6f1139d1c23e35e7cea129c0af"
 uuid = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
-version = "0.9.12"
+version = "0.9.13"
 
 [[deps.KrylovKit]]
 deps = ["ChainRulesCore", "GPUArraysCore", "LinearAlgebra", "Printf"]
@@ -561,9 +561,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuantumOperators]]
 deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "0837513b77f6e9e5d85f8c19c28d4408b2bd2138"
+git-tree-sha1 = "4ec562ac9f90aff5601897ec54965bab9a985f96"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.19"
+version = "0.1.20"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]

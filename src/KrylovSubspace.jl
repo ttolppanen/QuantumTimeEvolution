@@ -39,7 +39,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H, find_subspace::Functi
             throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
         end
         @views mul!(state[indices], pa_k.U[1:dim, :], (exp(-1im * dt * pa_k.H_k)[:, 1]))
-        normalize!(state)
+        normalize!(@view(state[indices]))
         return state, id, indices
     end
     push!(time_step_funcs, take_time_step)

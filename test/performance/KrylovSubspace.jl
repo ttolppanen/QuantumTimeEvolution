@@ -14,9 +14,27 @@ function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_
     end
 end
 
+function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
+    id_after_measurement = id
+    for L in 1:length(msr_op[id])
+        if rand(Float64) < msr_prob
+            i = measuresite!(state[id], msr_op[id], L)
+            new_id, op = fb_op[id][L][i]
+            if new_id == id
+                state[new_id] .= op * state[id]
+            else
+                mul!(state[new_id], op, state[id])
+            end
+            normalize!(state[new_id])
+            id_after_measurement = new_id
+        end
+    end
+    return id_after_measurement
+end
+
 function f()
-    d = 2; L = 10;
-    dt = 0.02; t = 30.0; k = 6
+    d = 2; L = 16;
+    dt = 0.02; t = 10.0; k = 6
     state = allone(d, L)
     H = bosehubbard(d, L)
     n = nall(d, L)
@@ -30,41 +48,38 @@ function f()
     
     lines = []
 
-    r = krylovevolve(state, H, dt, t, k, observables...; effect!)
-    @time r = krylovevolve(state, H, dt, t, k, observables...; effect!)
-    push!(lines, LineInfo(0:dt:t, r[1, :], 1, "no_subspace, n"))
-    push!(lines, LineInfo(0:dt:t, r[2, :], 1, "no_subspace, n1"))
+    # r = krylovevolve(state, H, dt, t, k, observables...; effect!)
+    # @time r = krylovevolve(state, H, dt, t, k, observables...; effect!)
+    # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "no_subspace, n"))
+    # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "no_subspace, n1"))
 
 
     # in subspace
-    perm_mat, ranges = total_boson_number_subspace_tools(d, L)
-    finder(state; id_initial_guess = 1) = find_subspace(state, ranges; id_initial_guess, iterate_order = -1)
-    state .= perm_mat * state
-    H = split_operator(H, perm_mat, ranges)
-    n = split_operator(n, perm_mat, ranges)
-    n1 = split_operator(n1, perm_mat, ranges)
+    indices = total_boson_number_subspace_indices(d, L)
+    initial_id = find_subspace(state, indices)
+
+    state = subspace_split(state, indices)
+    H = subspace_split(H, indices)
+    n = subspace_split(n, indices)
+    n1 = subspace_split(n1, indices)
     observables = [
-        (state, id, range) -> expval(@view(state[range]), n[id]),
-        (state, id, range) -> expval(@view(state[range]), n1[id])]
+        (state, id) -> expval(state[id], n[id]),
+        (state, id) -> expval(state[id], n1[id])]
 
     msrop = measurementoperators(nop(d), L)
-    for L in msrop
-        for op in L
-            op .= perm_mat * op * perm_mat'
-        end
-    end
-    feedback = [perm_mat * singlesite(n_bosons_projector(d, 0), L, i) * perm_mat' for i in 1:L]
-    function effect!(state, id, range)
+    feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
+    feedback, msrop = feedback_measurement_subspace(feedback, msrop, indices; digit_error = 12)
+
+    function effect!(state, id)
         if id == 1
-            return state, id, range
+            return state, id
         end
-        measurement_and_feedback!(state, msrop, p, feedback)
-        id, range = finder(state; id_initial_guess = id)
-        return state, id, range
+        id = measurement_and_feedback!(state, msrop, p, feedback, id)
+        return state, id
     end
 
-    r = krylovevolve(state, H, finder, dt, t, k, observables...; effect!)
-    @time r = krylovevolve(state, H, finder, dt, t, k, observables...; effect!)
+    r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
+    @time r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
     push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
     push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
 
@@ -72,4 +87,4 @@ function f()
     makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
-f();
+@profview f();

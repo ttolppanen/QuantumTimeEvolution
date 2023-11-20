@@ -34,7 +34,7 @@ function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
 end
 
 function f()
-    d = 2; L = 18;
+    d = 2; L = 16;
     dt = 0.02; t = 30.0; k = 6
     state = allone(d, L)
     H = bosehubbard(d, L)
@@ -42,7 +42,7 @@ function f()
     n1 = singlesite_n(d, L, 1)
     observables = [state -> expval(state, n), state -> expval(state, n1)]
 
-    p = 0.01
+    p = 0.001
     msrop = measurementoperators(nop(d), L)
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
     effect!(state) = measurement_and_feedback!(state, msrop, p, feedback)
@@ -57,19 +57,21 @@ function f()
 
     # in subspace
     indices = total_boson_number_subspace_indices(d, L)
+    ranges, perm_mat = total_boson_number_subspace_tools(d, L)
     initial_id = find_subspace(state, indices)
 
-    state = subspace_split(state, indices)
-    H = subspace_split(H, indices)
-    n = subspace_split(n, indices)
-    n1 = subspace_split(n1, indices)
+    state = subspace_split(state, ranges, perm_mat)
+    H = subspace_split(H, ranges, perm_mat)
+    n = subspace_split(n, ranges, perm_mat)
+    n1 = subspace_split(n1, ranges, perm_mat)
     observables = [
         (state, id) -> expval(state[id], n[id]),
         (state, id) -> expval(state[id], n1[id])]
 
     msrop = measurementoperators(nop(d), L)
+    msrop = measurement_subspace(msrop, ranges, perm_mat)
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
-    feedback, msrop = feedback_measurement_subspace(feedback, msrop, indices; digit_error = 12)
+    feedback = feedback_measurement_subspace(feedback, msrop, indices; digit_error = 10, id_relative_guess = -1)
 
     function effect!(state, id)
         if id == 1
@@ -88,5 +90,4 @@ function f()
     makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
-Profile.clear()
-@profview f();
+@time f();

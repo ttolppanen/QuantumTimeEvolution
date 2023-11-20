@@ -935,9 +935,9 @@ version = "6.5.3+1"
 
 [[deps.QuantumOperators]]
 deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
-path = "../../../QuantumOperators"
+path = "../../QuantumOperators"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.20"
+version = "0.1.21"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]
@@ -947,7 +947,7 @@ version = "0.1.5"
 
 [[deps.QuantumTimeEvolution]]
 deps = ["Distributed", "ITensors", "LinearAlgebra", "QuantumOperators", "SparseArrays", "StaticArrays"]
-path = "../.."
+path = ".."
 uuid = "7373133c-a6f7-4e95-971a-e453f442ca60"
 version = "0.5.5"
 

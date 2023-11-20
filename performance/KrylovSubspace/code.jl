@@ -3,6 +3,7 @@ using QuantumOperators
 using QuantumTimeEvolution
 using PlotAndSave
 using LinearAlgebra
+using Profile
 
 function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_prob::Real, fb_op)
     for i in 1:length(msr_op)
@@ -33,8 +34,8 @@ function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
 end
 
 function f()
-    d = 2; L = 16;
-    dt = 0.02; t = 10.0; k = 6
+    d = 2; L = 18;
+    dt = 0.02; t = 30.0; k = 6
     state = allone(d, L)
     H = bosehubbard(d, L)
     n = nall(d, L)
@@ -87,4 +88,5 @@ function f()
     makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
+Profile.clear()
 @profview f();

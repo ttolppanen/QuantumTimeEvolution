@@ -38,17 +38,31 @@ function krylovevolve(state0, initial_subspace_id, H, dt::Real, t::Real, k::Inte
     pa_k = PA_krylov_sub(k, H)
     return krylovevolve(state0, initial_subspace_id, H, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0, initial_subspace_id, H, dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub, observables...;
+function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub, observables...;
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
-    function initialize(state0)
-        return Vector.(deepcopy(state0)), initial_subspace_id
-    end
-    time_step_funcs = [] # functions to run in a single timestep
+    initial_args = (Vector.(deepcopy(state0)), initial_subspace_id)
 
-    function take_time_step(state, id)
+    time_step_funcs = [] # functions to run in a single timestep
+    take_time_step! = take_krylov_time_step_subspace_function(H, k, dt, pa_k)
+    push!(time_step_funcs, take_time_step!)
+    push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
+
+    if !isa(effect!, Nothing)
+        if save_before_effect
+            push!(time_step_funcs, effect!)
+        else
+            insert!(time_step_funcs, 2, effect!)
+        end
+    end
+        
+    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+end
+
+function take_krylov_time_step_subspace_function(H, k, dt, pa_k)
+    function take_time_step!(state, id)
         krylovsubspace!(state[id], H[id], k, pa_k.H_k, pa_k.U[id], pa_k.z[id])
         if !all(isfinite, pa_k.H_k)
             throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
@@ -57,18 +71,5 @@ function krylovevolve(state0, initial_subspace_id, H, dt::Real, t::Real, k::Inte
         normalize!(state[id])
         return state, id
     end
-    push!(time_step_funcs, take_time_step)
-
-    if !isa(effect!, Nothing)
-        if save_before_effect
-            push!(time_step_funcs, :calc_obs)
-            push!(time_step_funcs, effect!)
-        else
-            push!(time_step_funcs, effect!)
-            push!(time_step_funcs, :calc_obs)
-        end
-    else # no effect
-        push!(time_step_funcs, :calc_obs)
-    end
-    return timeevolve!(state0, initialize, time_step_funcs, steps, observables...; save_only_last)
+    return take_time_step!
 end

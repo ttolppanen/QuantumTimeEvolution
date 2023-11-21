@@ -9,26 +9,24 @@
 d = 2; L = 2; k = 5
 dt = 0.1; t = 5.0
 one_boson_site = 1
-perm_mat, ranges = total_boson_number_subspace_tools(d, L)
-finder(state) = find_subspace(state, ranges)
-state = perm_mat * singleone(d, L, one_boson_site)
+indices = total_boson_number_subspace_indices(d, L)
+state = singleone(d, L, one_boson_site)
+initial_id = find_subspace(state, indices)
 
+state = subspace_split(state, indices)
 H = bosehubbard(d, L)
-sub_H = split_operator(H, perm_mat, ranges)
-U_op = exp(-im * dt * Matrix(H))
-sub_U = split_operator(U_op, perm_mat, ranges)
-ntot = nall(d, L)
-sub_ntot = split_operator(ntot, perm_mat, ranges)
-n = singlesite_n(d, L, one_boson_site)
-sub_n = split_operator(n, perm_mat, ranges)
+U = subspace_split(exp(-im * dt * Matrix(H)), indices)
+H = subspace_split(H, indices)
+ntot = subspace_split(nall(d, L), indices)
+n = subspace_split(singlesite_n(d, L, one_boson_site), indices)
 
 observables = [
-    (state, id, range) -> norm(@view(state[range])),
-    (state, id, range) -> expval(@view(state[range]), sub_ntot[id]),
-    (state, id, range) -> expval(@view(state[range]), sub_n[id])]
+    (state, id) -> norm(state[id]),
+    (state, id) -> expval(state[id], ntot[id]),
+    (state, id) -> expval(state[id], n[id])]
 
-r_exact = exactevolve(state, sub_U, finder, dt, t, observables...)
-r_krylov = krylovevolve(state, sub_H, finder, dt, t, k, observables...)
+r_exact = exactevolve(state, initial_id, U, dt, t, observables...)
+r_krylov = krylovevolve(state, initial_id, H, dt, t, k, observables...)
 r_all = [r_exact, r_krylov]
 
 @testset "Normalization" begin

@@ -15,31 +15,33 @@ function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Numbe
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
 
     steps = length(0:dt:t)
-    initialize(state0) = return (copy(state0), )
+    initial_args = (copy(state0), ) # wrap initial_args in a tuple, even if its just 1 argument
     time_step_funcs = [] # functions to run in a single timestep
 
-    function take_time_step(state)
-        state .= U * state
-        normalize!(state)
-        return (state, )
-    end
-    push!(time_step_funcs, take_time_step)
+    take_time_step! = take_exact_time_step_function(U)
+    push!(time_step_funcs, take_time_step!)
+    push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
 
     if !isa(effect!, Nothing)
-        function do_effect(state)
+        function do_effect!(state)
             effect!(state)
             return (state, )
         end
         if save_before_effect
-            push!(time_step_funcs, :calc_obs)
-            push!(time_step_funcs, do_effect)
+            push!(time_step_funcs, do_effect!)
         else
-            push!(time_step_funcs, do_effect)
-            push!(time_step_funcs, :calc_obs)
+            insert!(time_step_funcs, 2, do_effect!)
         end
-    else # no effect
-        push!(time_step_funcs, :calc_obs)
     end
         
-    return timeevolve!(state0, initialize, time_step_funcs, steps, observables...; save_only_last)
+    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+end
+
+function take_exact_time_step_function(U)
+    function take_time_step!(state)
+        state .= U * state
+        normalize!(state)
+        return (state, )
+    end
+    return take_time_step!
 end

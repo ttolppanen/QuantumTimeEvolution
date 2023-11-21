@@ -2,9 +2,8 @@
 # using QuantumOperators
 
 # state0 : initial state;
-# initial_args : a function that calculates the initial arguments; A function that takes the initial state
-#                                                                  as an argument, and returns the arguments the other functions
-#                                                                  that do the time evolution need.
+# initial_args : the initial running argument of the time evolution; Arguments that change during the time evolution. For the most basic case, initial_args could be
+#                                                                    a copy of the state
 # time_step_funcs : list of functions that the timestep consists of; These functions take in the arguments that initial_args returns, they can change these,
 #                                                                    and they should return these so that the next function has the updated arguments, if needed.
 #                                                                    These functions build the time evolution, so the list is something like
@@ -14,14 +13,16 @@
 # observables : Array of observables to calculate; These should be functions with a single argument, the state, and which return a real number.                                                                   indeces of the current subspace as an array e.g. find_subspace(state) -> [1,2,4,5,10,12,...]
 
 
-function timeevolve!(state0, initial_args::Function, time_step_funcs, steps::Int, observables...; save_only_last::Bool = false)
-    out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps)
+function timeevolve!(initial_args, time_step_funcs, steps::Int, observables...; save_only_last::Bool = false)
+    out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps) # matrix with dimensions of N(observables) x N(steps)
     up_out = generate_calc_obs_func(out, observables)
-    args = initial_args(state0) # initial arguments that are passed on to other functions
-    up_out(1, args...) # state0 observables values
+    args = initial_args # initial arguments that are passed on to time evolution
+    up_out(1, args...) # initial_args observables values
     for i in 2:steps
         for f in time_step_funcs
-            if f == :calc_obs
+            if f != :calc_obs
+                args = f(args...)
+            else
                 if save_only_last
                     if i == steps 
                         up_out(1, args...) 
@@ -29,8 +30,6 @@ function timeevolve!(state0, initial_args::Function, time_step_funcs, steps::Int
                 else
                     up_out(i, args...)
                 end
-            else
-                args = f(args...)
             end
         end
     end

@@ -38,10 +38,30 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
-    initialize(state0) = return (Vector(copy(state0)), )
+    initial_args = (Vector(copy(state0)), ) # wrap initial arguments in a tuple
     time_step_funcs = [] # functions to run in a single timestep
 
-    function take_time_step(state)
+    take_time_step! = take_krylov_time_step_function(H, k, dt, pa_k)
+    push!(time_step_funcs, take_time_step!)
+    push!(time_step_funcs, :calc_obs)
+
+    if !isa(effect!, Nothing)
+        function do_effect!(state)
+            effect!(state)
+            return (state, )
+        end
+        if save_before_effect
+            push!(time_step_funcs, do_effect!)
+        else
+            insert!(time_step_funcs, 2, do_effect!)
+        end
+    end
+        
+    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+end
+
+function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, k::Integer, dt::Real, pa_k::PA_krylov)
+    function take_time_step!(state)
         krylovsubspace!(state, H, k, pa_k) # makes changes into pa_k
         if !all(isfinite, pa_k.H_k) 
             throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
@@ -50,24 +70,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
         normalize!(state)
         return (state, )
     end
-    push!(time_step_funcs, take_time_step)
-
-    if !isa(effect!, Nothing)
-        function do_effect(state)
-            effect!(state)
-            return (state, )
-        end
-        if save_before_effect
-            push!(time_step_funcs, :calc_obs)
-            push!(time_step_funcs, do_effect)
-        else
-            push!(time_step_funcs, do_effect)
-            push!(time_step_funcs, :calc_obs)
-        end
-    else # no effect
-        push!(time_step_funcs, :calc_obs)
-    end
-    return timeevolve!(state0, initialize, time_step_funcs, steps, observables...; save_only_last)
+    return take_time_step!
 end
 
 # here H_k, U and z are pre-allocated

@@ -16,32 +16,36 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observa
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, kwargs...) #keyword arguments for ITensors.apply
     
     steps = length(0:dt:t)
-    initialize(state0) = return (deepcopy(state0), )
+    initial_args = (deepcopy(mps0), )
+
     time_step_funcs = [] # functions to run in a single timestep
 
-    function take_time_step(state)
-        state .= apply(gates, state; kwargs...) # here the .= was required for this to work, but it doesn't make sense! If there is weird behaviour, check this.
-        normalize!(state)
-        return (state, )
-    end
-    push!(time_step_funcs, take_time_step)
+    take_time_step! = take_mps_time_step_function(gates, kwargs)
+    push!(time_step_funcs, take_time_step!)
+    push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
 
     if !isa(effect!, Nothing)
-        function do_effect(state)
+        function do_effect!(state)
             effect!(state)
             return (state, )
         end
         if save_before_effect
-            push!(time_step_funcs, :calc_obs)
-            push!(time_step_funcs, do_effect)
+            push!(time_step_funcs, do_effect!)
         else
-            push!(time_step_funcs, do_effect)
-            push!(time_step_funcs, :calc_obs)
+            insert!(time_step_funcs, 2, do_effect!)
         end
-    else # no effect
-        push!(time_step_funcs, :calc_obs)
     end
-    return timeevolve!(mps0, initialize, time_step_funcs, steps, observables...; save_only_last)
+        
+    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+end
+
+function take_mps_time_step_function(gates, kwargs)
+    function take_time_step!(state)
+        state .= apply(gates, state; kwargs...) # here the .= was required for this to work, but it doesn't make sense! If there is weird behaviour, check this.
+        normalize!(state)
+        return (state, )
+    end
+    return take_time_step!
 end
 
 # The expansion is 2k-th order by default

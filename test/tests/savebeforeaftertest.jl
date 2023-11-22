@@ -38,8 +38,8 @@ end
     op_to_msr = nop(d)
     msrop = measurementoperators(op_to_msr, L)
     msrop_tensor = measurementoperators(op_to_msr, siteinds(mps0))
-    meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
-    meffect_t!(state) = measuresitesrandomly!(state, msrop_tensor, msr_prob)
+    meffect!(state) = random_measurement!(state, msrop, msr_prob)
+    meffect_t!(state) = random_measurement!(state, msrop_tensor, msr_prob)
 
     n1 = singlesite_n(d, L, 1)
     Random.seed!(rng_seed) # Makes the rng the same

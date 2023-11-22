@@ -20,8 +20,8 @@
     op_to_msr = nop(d)
     msrop = measurementoperators(op_to_msr, L)
     msrop_tensor = measurementoperators(op_to_msr, siteinds(mps0))
-    meffect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
-    meffect_t!(state) = measuresitesrandomly!(state, msrop_tensor, msr_prob)
+    meffect!(state) = random_measurement!(state, msrop, msr_prob)
+    meffect_t!(state) = random_measurement!(state, msrop_tensor, msr_prob)
 
     n1 = singlesite_n(d, L, 1)
     observables = [norm, state -> expval(state, n1)]
@@ -80,11 +80,11 @@ end
     observables = [norm, state -> expval(state, n)]
     Random.seed!(rng_seed) # Makes the rng the same
     proj_prob = 0.0
-    r_krylov_1 = krylovevolve(state0, H, dt, t, 4, observables...; effect! = state -> random_predetermined_measurement!(state, msrop, msr_prob, proj_op, proj_prob))
+    r_krylov_1 = krylovevolve(state0, H, dt, t, 4, observables...; effect! = state -> random_measurement_random_feedback!(state, msrop, msr_prob, proj_op, proj_prob))
     
     Random.seed!(rng_seed) # Makes the rng the same
     proj_prob = 1.0
-    r_krylov_2 = krylovevolve(state0, H, dt, t, 4, observables...; effect! = state -> random_predetermined_measurement!(state, msrop, msr_prob, proj_op, proj_prob))
+    r_krylov_2 = krylovevolve(state0, H, dt, t, 4, observables...; effect! = state -> random_measurement_random_feedback!(state, msrop, msr_prob, proj_op, proj_prob))
 
     plot_x = 0:dt:t
     @testset "Normalization" begin
@@ -114,7 +114,7 @@ function calc_ent_traj(msr_prob)
     traj = 30
     mps0 = zeroonemps(d, L)
     gates = bosehubbardgates(siteinds(mps0), dt)
-    meffect! = measuresitesrandomly!(siteinds(mps0), nop(d), msr_prob)
+    meffect! = random_measurement!(siteinds(mps0), nop(d), msr_prob)
     observables = [state -> entanglement(state, 2)]
     r_f() = mpsevolve(mps0, gates, dt, t, observables...; effect! = meffect!, cutoff = 1E-8)
     result = solvetrajectories(r_f, traj)
@@ -143,14 +143,14 @@ end
     state0 = zeroone(d, L)
     H = bosehubbard(d, L)
     msrop = measurementoperators(nop(d), L)
-    meffect!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
+    meffect!(state, msr_prob) = random_measurement!(state, msrop, msr_prob)
     calc_ent(state) = entanglement(d, L, state, 2)
     res1 = mipt(state0, H, 6, meffect!, dt, t, prob, traj, calc_ent; paral = :threads)
     pl = plot(prob, res1)
     mps0 = onezeromps(d, L)
     gates = bosehubbardgates(siteinds(mps0), dt)
     msrop = measurementoperators(nop(d), siteinds(mps0))
-    meffect2!(state, msr_prob) = measuresitesrandomly!(state, msrop, msr_prob)
+    meffect2!(state, msr_prob) = random_measurement!(state, msrop, msr_prob)
     calc_ent2(state) = entanglement(state, 2)
     res2 = mipt(mps0, gates, meffect2!, dt, t, prob, traj, calc_ent2; paral = :threads)
     plot!(pl, prob, res2)
@@ -164,12 +164,12 @@ end
     state = zeroone(d, L)
     H = bosehubbard(d, L)
     msrop = measurementoperators(nop(d), L)
-    effect!(state) = measuresitesrandomly!(state, msrop, msr_prob)
+    effect!(state) = random_measurement!(state, msrop, msr_prob)
     observables = [state -> entanglement(d, L, state, half)]
     Random.seed!(rng_seed)
     r_k = krylovevolve(state, H, dt, t, 5, observables...; effect!)
     r1 = r_k[1, :]
-    effect! = measuresitesrandomly!(L, nop(d), msr_prob)
+    effect! = random_measurement!(L, nop(d), msr_prob)
     Random.seed!(rng_seed)
     r_k = krylovevolve(state, H, dt, t, 5, observables...; effect!)
     r2 = r_k[1, :]

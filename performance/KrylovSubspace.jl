@@ -15,23 +15,23 @@ function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_
     end
 end
 
-function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
-    id_after_measurement = id
-    for L in 1:length(msr_op[id])
-        if rand(Float64) < msr_prob
-            i = measuresite!(state[id], msr_op[id], L)
-            new_id, op = fb_op[id][L][i]
-            if new_id == id
-                state[new_id] .= op * state[id]
-            else
-                mul!(state[new_id], op, state[id])
-            end
-            normalize!(state[new_id])
-            id_after_measurement = new_id
-        end
-    end
-    return id_after_measurement
-end
+# function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
+#     id_after_measurement = id
+#     for L in 1:length(msr_op[id])
+#         if rand(Float64) < msr_prob
+#             i = measuresite!(state[id], msr_op[id], L)
+#             new_id, op = fb_op[id][L][i]
+#             if new_id == id
+#                 state[new_id] .= op * state[id]
+#             else
+#                 mul!(state[new_id], op, state[id])
+#             end
+#             normalize!(state[new_id])
+#             id_after_measurement = new_id
+#         end
+#     end
+#     return id_after_measurement
+# end
 
 function f()
     d = 2; L = 16;
@@ -73,13 +73,7 @@ function f()
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
     feedback = feedback_measurement_subspace(feedback, msrop, indices; digit_error = 10, id_relative_guess = -1)
 
-    function effect!(state, id)
-        if id == 1
-            return state, id
-        end
-        id = measurement_and_feedback!(state, msrop, p, feedback, id)
-        return state, id
-    end
+    effect!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
 
     r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
     @time r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)

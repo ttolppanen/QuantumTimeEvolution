@@ -1,17 +1,18 @@
 # using QuantumStates
 # using QuantumOperators
+# using Random
 
-# These tests just check that code runs.
-# It feels too difficult to figure how to test
-# effect that have random outcomes...
+# These tests just check that code runs, and that the subspace
+# results are the same as in the normal case, with measurement and feedback.
 
 @testset "Effects" begin
 
-d = 2; L = 16;
+d = 2; L = 4;
 dt = 0.02; t = 30.0; k = 6
 p = 0.01
+rng_seed = 7
 
-@testset "Full Space" begin
+@testset "Subspace and Total Space Give Same Result" begin
     state = allone(d, L)
     H = bosehubbard(d, L)
     n = nall(d, L)
@@ -25,12 +26,11 @@ p = 0.01
     effect!(state) = random_measurement!(state, msrop, p)
     krylovevolve(state, H, dt, t, k, observables...; effect!)
     
-    effect!(state) = random_measurement_feedback!(state, msrop, p, feedback)
-    krylovevolve(state, H, dt, t, k, observables...; effect!)
-    @test true
-end
+    effect_subspace!(state) = random_measurement_feedback!(state, msrop, p, feedback)
+    Random.seed!(rng_seed) # Makes the rng the same
+    k_r = krylovevolve(state, H, dt, t, k, observables...; effect! = effect_subspace!)
 
-@testset "SubSpace" begin
+    # in subspace
     state = allone(d, L)
     indices = total_boson_number_subspace_indices(d, L)
     ranges, perm_mat = total_boson_number_subspace_tools(d, L)
@@ -52,9 +52,11 @@ end
     effect!(state, id) = random_measurement!(state, id, msrop, p)
     krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
 
-    effect!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
-    krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
-    @test true
+    effect_subspace!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
+    Random.seed!(rng_seed) # Makes the rng the same
+    sb_r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect! = effect_subspace!)
+    
+    @test round(norm(sb_r .- k_r), digits = 13) == 0.0 # testing if the results from no subspace and subspace are the same
 end
 
 end # test set

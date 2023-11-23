@@ -38,7 +38,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
-    initial_args = (Vector(copy(state0)), ) # wrap initial arguments in a tuple
+    initial_args = Vector(copy(state0))
     time_step_funcs = [] # functions to run in a single timestep
 
     take_time_step! = take_krylov_time_step_function(H, k, dt, pa_k)
@@ -46,14 +46,10 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     push!(time_step_funcs, :calc_obs)
 
     if !isa(effect!, Nothing)
-        function do_effect!(state)
-            effect!(state)
-            return (state, )
-        end
         if save_before_effect
-            push!(time_step_funcs, do_effect!)
+            push!(time_step_funcs, effect!)
         else
-            insert!(time_step_funcs, 2, do_effect!)
+            insert!(time_step_funcs, 2, effect!)
         end
     end
         
@@ -68,7 +64,7 @@ function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, k::Integer,
         end
         mul!(state, pa_k.U, @view(exp(-1im * dt * pa_k.H_k)[:, 1]))
         normalize!(state)
-        return (state, )
+        return state
     end
     return take_time_step!
 end

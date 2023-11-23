@@ -16,7 +16,7 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observa
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, kwargs...) #keyword arguments for ITensors.apply
     
     steps = length(0:dt:t)
-    initial_args = (deepcopy(mps0), )
+    initial_args = deepcopy(mps0)
 
     time_step_funcs = [] # functions to run in a single timestep
 
@@ -25,14 +25,10 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observa
     push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
 
     if !isa(effect!, Nothing)
-        function do_effect!(state)
-            effect!(state)
-            return (state, )
-        end
         if save_before_effect
-            push!(time_step_funcs, do_effect!)
+            push!(time_step_funcs, effect!)
         else
-            insert!(time_step_funcs, 2, do_effect!)
+            insert!(time_step_funcs, 2, effect!)
         end
     end
         
@@ -43,7 +39,7 @@ function take_mps_time_step_function(gates, kwargs)
     function take_time_step!(state)
         state .= apply(gates, state; kwargs...) # here the .= was required for this to work, but it doesn't make sense! If there is weird behaviour, check this.
         normalize!(state)
-        return (state, )
+        return state
     end
     return take_time_step!
 end

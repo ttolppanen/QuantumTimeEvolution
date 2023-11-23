@@ -17,21 +17,38 @@ function timeevolve!(initial_args, time_step_funcs, steps::Int, observables...; 
     out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps) # matrix with dimensions of N(observables) x N(steps)
     up_out = generate_calc_obs_func(out, observables)
     args = initial_args # initial arguments that are passed on to time evolution
-    up_out(1, args...) # initial_args observables values
-    for i in 2:steps
-        for f in time_step_funcs
-            if f != :calc_obs
-                args = f(args...)
-            else
-                if save_only_last
-                    if i == steps 
-                        up_out(1, args...) 
+    is_args_a_tuple = isa(args, Tuple)
+    is_args_a_tuple ? up_out(1, args...) : up_out(1, args) # initial_args observables values
+    try
+        for i in 2:steps
+            for f in time_step_funcs
+                if f != :calc_obs
+                    if is_args_a_tuple
+                        args = f(args...)
+                    else
+                        args = f(args)
                     end
                 else
-                    up_out(i, args...)
+                    if save_only_last
+                        if i == steps
+                            is_args_a_tuple ? up_out(1, args...) : up_out(1, args)
+                        end
+                    else
+                        is_args_a_tuple ? up_out(i, args...) : up_out(i, args)
+                    end
                 end
             end
         end
+    catch e
+        if isa(args, Nothing)
+            println("
+            A function in the time evolution is returning nothing. 
+            Check that your effect! and your timestep are returning proper values. 
+            For the normal case, all functions should return the state. 
+            In the subspace case, all functions should return the state and the current subspace id -> (state, id) 
+            In your own custom time evolution they should all return what is changing during the time evolution.\n")
+        end
+        throw(e)
     end
     return out
 end

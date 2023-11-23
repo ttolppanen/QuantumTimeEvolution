@@ -2,6 +2,7 @@
 # using ITensors
 # using LinearAlgebra
 
+export random_measurement_function
 export random_measurement!
 export random_measurement_feedback!
 export random_measurement_random_feedback!
@@ -11,9 +12,13 @@ MsrOpType = Union{MsrOpMatrixType, MsrOpITensorType}
 
 # msr_prob : measurement probability; the probability that a single site will be measured
 # Use this as an effect: msr_effect!(state) = random_measurement!(state, msrop, msr_prob)
-function random_measurement!(L::Union{Integer, Vector{<:Index}}, op::AbstractMatrix, msr_prob::Real; kwargs...) # kwargs for measuresite!
+function random_measurement_function(L::Union{Integer, Vector{<:Index}}, op::AbstractMatrix, msr_prob::Real; kwargs...) # kwargs for measuresite!
     msr_op = measurementoperators(op, L)
-    return effect!(state) = random_measurement!(state, msr_op, msr_prob; kwargs...)
+    function effect!(state)
+        random_measurement!(state, msr_op, msr_prob; kwargs...)
+        return state
+    end
+    return effect!
 end
 function random_measurement!(state::StateType, msr_op::MsrOpType, msr_prob::Real; kwargs...) # kwargs for measuresite!
     for site in 1:length(msr_op)
@@ -21,6 +26,7 @@ function random_measurement!(state::StateType, msr_op::MsrOpType, msr_prob::Real
             measuresite!(state, msr_op, site; kwargs...) # kwargs are for ITensors.apply
         end
     end
+    return state
 end
 function random_measurement!(state::Vector{<:AbstractVector}, subspace_id::Integer, msr_op::Vector, msr_prob::Real)
     for site in 1:length(msr_op[subspace_id])
@@ -28,6 +34,7 @@ function random_measurement!(state::Vector{<:AbstractVector}, subspace_id::Integ
             measuresite!(state[subspace_id], msr_op[subspace_id], site)
         end
     end
+    return state, subspace_id
 end
 
 function random_measurement_feedback!(state::AbstractVector{<:Number}, msr_op::MsrOpMatrixType, msr_prob::Real, feedback::AbstractVector)
@@ -38,6 +45,7 @@ function random_measurement_feedback!(state::AbstractVector{<:Number}, msr_op::M
             normalize!(state)
         end
     end
+    return state
 end
 # skip_subspaces : id of the subspaces to skip; e.g. skip_subspaces = 1 skips the 0 boson subspace, skip_subspaces = [1, 3] skips 0 and 2 boson subspaces (in the total boson subspace case)
 function random_measurement_feedback!(state::Vector{<:AbstractVector}, subspace_id::Integer, msr_op::Vector, 
@@ -46,21 +54,21 @@ function random_measurement_feedback!(state::Vector{<:AbstractVector}, subspace_
     if in(subspace_id, skip_subspaces)
         return state, subspace_id
     end
-    id_after_feedback = subspace_id
-    for site in 1:length(msr_op[subspace_id])
+    current_subspace_id = subspace_id
+    for site in 1:length(msr_op[current_subspace_id])
         if rand(Float64) < msr_prob
-            msr_outcome = measuresite!(state[subspace_id], msr_op[subspace_id], site)
-            new_id, op = feedback[subspace_id][site][msr_outcome]
-            if new_id == subspace_id
-                state[new_id] .= op * state[subspace_id]
+            msr_outcome = measuresite!(state[current_subspace_id], msr_op[current_subspace_id], site)
+            new_id, op = feedback[current_subspace_id][site][msr_outcome]
+            if new_id == current_subspace_id
+                state[new_id] .= op * state[current_subspace_id]
             else
-                mul!(state[new_id], op, state[subspace_id])
+                mul!(state[new_id], op, state[current_subspace_id])
             end
             normalize!(state[new_id])
-            id_after_feedback = new_id
+            current_subspace_id = new_id
         end
     end
-    return state, id_after_feedback
+    return state, current_subspace_id
 end
 
 function random_measurement_random_feedback!(state::AbstractVector{<:Number}, msr_op::MsrOpMatrixType, msr_prob::Real, feedback::AbstractVector, feedback_prob::Real)
@@ -73,4 +81,5 @@ function random_measurement_random_feedback!(state::AbstractVector{<:Number}, ms
             end
         end
     end
+    return state
 end

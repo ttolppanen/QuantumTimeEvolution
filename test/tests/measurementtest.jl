@@ -114,7 +114,7 @@ function calc_ent_traj(msr_prob)
     traj = 30
     mps0 = zeroonemps(d, L)
     gates = bosehubbardgates(siteinds(mps0), dt)
-    meffect! = random_measurement!(siteinds(mps0), nop(d), msr_prob)
+    meffect! = random_measurement_function(siteinds(mps0), nop(d), msr_prob)
     observables = [state -> entanglement(state, 2)]
     r_f() = mpsevolve(mps0, gates, dt, t, observables...; effect! = meffect!, cutoff = 1E-8)
     result = solvetrajectories(r_f, traj)
@@ -139,7 +139,7 @@ end
     d = 2; L = 4
     dt = 0.1; t = 5
     prob = [0.01, 0.15, 0.3]
-    traj = 20
+    traj = 50
     state0 = zeroone(d, L)
     H = bosehubbard(d, L)
     msrop = measurementoperators(nop(d), L)
@@ -169,7 +169,7 @@ end
     Random.seed!(rng_seed)
     r_k = krylovevolve(state, H, dt, t, 5, observables...; effect!)
     r1 = r_k[1, :]
-    effect! = random_measurement!(L, nop(d), msr_prob)
+    effect! = random_measurement_function(L, nop(d), msr_prob)
     Random.seed!(rng_seed)
     r_k = krylovevolve(state, H, dt, t, 5, observables...; effect!)
     r2 = r_k[1, :]

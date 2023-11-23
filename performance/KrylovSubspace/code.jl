@@ -4,6 +4,7 @@ using QuantumTimeEvolution
 using PlotAndSave
 using LinearAlgebra
 using Profile
+using Random
 
 function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_prob::Real, fb_op)
     for i in 1:length(msr_op)
@@ -13,6 +14,7 @@ function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_
             normalize!(state)
         end
     end
+    return state
 end
 
 # function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
@@ -34,8 +36,9 @@ end
 # end
 
 function f()
-    d = 2; L = 16;
-    dt = 0.02; t = 30.0; k = 6
+    d = 2; L = 12;
+    dt = 0.02; t = 30; k = 6
+    rng_seed = 2
     state = allone(d, L)
     H = bosehubbard(d, L)
     n = nall(d, L)
@@ -50,9 +53,10 @@ function f()
     lines = []
 
     # r = krylovevolve(state, H, dt, t, k, observables...; effect!)
-    # @time r = krylovevolve(state, H, dt, t, k, observables...; effect!)
-    # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "no_subspace, n"))
-    # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "no_subspace, n1"))
+    Random.seed!(rng_seed)
+    @time r = krylovevolve(state, H, dt, t, k, observables...; effect!)
+    push!(lines, LineInfo(0:dt:t, r[1, :], 1, "no_subspace, n"))
+    push!(lines, LineInfo(0:dt:t, r[2, :], 1, "no_subspace, n1"))
 
 
     # in subspace
@@ -75,7 +79,8 @@ function f()
 
     effect!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
 
-    r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
+    # r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
+    Random.seed!(rng_seed)
     @time r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
     push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
     push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))

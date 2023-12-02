@@ -1,19 +1,21 @@
 using Distributed
-using JLD2
-using Plots
 using LinearAlgebra
 @everywhere using QuantumStates
 @everywhere using QuantumOperators
-using PlotAndSave
 @everywhere using QuantumTimeEvolution
+using PlotAndSave
 using OrderedCollections
 
-function traj_mean(result)
-    out = zeros(size(result[1]))
-    for traj in result
-        out .+= traj
+function traj_mean(c)
+    elements = length(c.data)
+    out = take!(c)
+    put!(c, out)
+    for _ in 2:elements
+        out_new = take!(c)
+        out .+= out_new
+        put!(c, out_new)
     end
-    return out ./ length(result)
+    return copy(out ./ elements)
 end
 
 function initial_parameters()
@@ -21,7 +23,7 @@ function initial_parameters()
     param[:dt] = 0.02
     param[:t] = 30
     param[:d] = 3
-    param[:L] = 8
+    param[:L] = 6
     param[:state] = ValueInfo(productstate(param[:d], [isodd(i) ? 2 : 0 for i in 1:param[:L]]), "|2020...>")
     param[:alg] = "krylov BN-subspace"
     param[:k] = 6
@@ -57,8 +59,13 @@ function f()
     feedback = feedback_measurement_subspace(param[:effect].val.fb, msrop, indices; digit_error = 10, id_relative_guess = -1)
 
     n = subspace_split(nall(d, L) ./ L, ranges, perm_mat)
-    obs_name = "N / L"
     obs(state, id) = expval(state[id], n[id])
+
+    H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U = Us[1]), ranges, perm_mat)
+
+    dt = param[:dt]; t = param[:t];
+    pa_k = PA_krylov_sub(param[:k], H)
+    pa_args, pa_out = traj_channels(zeros(1, length(0:dt:t)), traj, deepcopy(state), pa_k)
 
     @time for U in Us
         H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U), ranges, perm_mat)
@@ -67,78 +74,12 @@ function f()
             effect!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
             
             dt = param[:dt]; t = param[:t]; k = param[:k]
-            r_f() = krylovevolve(state, initial_id, H, dt, t, k, obs; effect!)
-            r = solvetrajectories(r_f, traj; paral = :distributed)
-            r = traj_mean(r)
+            r_f(out, work_v, pa_k) = krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, obs; effect!, out)
+            solvetrajectories_channel(r_f, traj, pa_args, pa_out)
+            r = traj_mean(pa_out)
             push!(plot_lines, LineInfo(0:dt:t, r[1, :], traj, "p = $p"))
         end
-        path = joinpath(@__DIR__, "U$U")
-        makeplot(path, plot_lines...; xlabel = "t", ylabel = obs_name, U, param...)
-        # addtrajectories(path, plot_lines...)
-        linearize_plot(path);
     end
-    combine_slope_plots();
 end
 
-function linearize_plot(path)
-    plotinfo = load(joinpath(path, "data.jld2"), "plotinfo")
-    traj = collect(values(plotinfo.lines))[1].traj
-    pl = plot(yaxis = :log10, 
-    title = plotinfo.title * ", traj = $traj", 
-    xlabel = "t*gamma", 
-    ylabel = plotinfo.ylabel, 
-    dpi = 300,
-    titlefontsize = 9,
-    legend = :outertopright,
-    xlims = (0, 30),
-    ylims = (10^-1, 1)
-    )
-    for line in values(plotinfo.lines)
-        p = parse(Float64, line.tag[5:end])
-        gamma = p / plotinfo.parameters[:dt]
-        plot!(pl, line.x .* gamma, line.y, label = line.tag)
-    end
-    path = joinpath(path, "linearized plot.png")
-    savefig(pl, path)
-    return pl
-end
-
-function lin_reg_slope(x, y) # https://jahoo.github.io/2021/01/11/simplest_linear_regression_example.html
-    A = hcat(x, ones(length(x)))
-    return (A \ y)[1]
-end
-
-function combine_slope_plots()
-    path = @__DIR__
-    pl = plot(xlabel = "p", 
-    ylabel = "Exp decay slopes", 
-    dpi = 300,
-    titlefontsize = 9,
-    legend = :outertopright
-    )
-    for U in [7, 9, 10, 11, 13]
-        data_path = joinpath(path, "U$U")
-        plotinfo = load(joinpath(data_path, "data.jld2"), "plotinfo")
-        ps = []
-        slopes = []
-        for line in values(plotinfo.lines)
-            p = parse(Float64, line.tag[5:end])
-            gamma = p / plotinfo.parameters[:dt]
-            x = line.x .* gamma
-            y = log10.(line.y)
-            line_start_index = Int(floor(length(x) / 4))
-            line_end_index = Int(floor(length(x) * 3 / 4))
-            slope = lin_reg_slope(x[line_start_index : line_end_index], y[line_start_index : line_end_index])
-            push!(ps, p)
-            push!(slopes, slope)
-        end
-        traj = collect(values(plotinfo.lines))[1].traj
-        title!(plotinfo.title * ", traj = $traj")
-        plot!(pl, ps, slopes, label = "U = $U")
-    end
-    path = joinpath(path, "combined slope plot test.png")
-    savefig(pl, path)
-    return pl
-end
-
-@time f()
+@profview f()

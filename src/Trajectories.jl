@@ -3,9 +3,36 @@
 # using Distributed
 
 export solvetrajectories
+export solvetrajectories_channel
+export traj_channels
 
-#f : function; a function that takes no arguments and retursn the time-evolution
+#f : function; a function that takes no arguments and returns the time-evolution
 #traj : number of trajectories
+
+function traj_channels(out, traj::Integer, args...)
+    n_threads = Threads.nthreads()
+    pa_out = Channel{typeof(out)}(traj)
+    pa_args = Channel{typeof(args)}(n_threads)
+    for _ in 1:traj
+        put!(pa_out, deepcopy(out))
+    end
+    for _ in 1:n_threads
+        put!(pa_args, deepcopy(args))
+    end
+    return pa_args, pa_out
+end
+
+function solvetrajectories_channel(f::Function, traj::Integer, pa_args, pa_out)
+    @sync for _ in 1:traj
+        Threads.@spawn begin
+            out = take!(pa_out)
+            args = take!(pa_args)
+            f(out, args...)
+            put!(pa_out, out)
+            put!(pa_args, args)
+        end
+    end
+end
 
 function solvetrajectories(f::Function, traj::Integer; paral::Symbol = :none)
     out = Array{Any}(undef, traj)

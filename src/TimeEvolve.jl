@@ -13,8 +13,12 @@
 # observables : Array of observables to calculate; These should be functions with a single argument, the state, and which return a real number.                                                                   indeces of the current subspace as an array e.g. find_subspace(state) -> [1,2,4,5,10,12,...]
 
 
-function timeevolve!(initial_args, time_step_funcs, steps::Int, observables...; save_only_last::Bool = false)
-    out = save_only_last ? zeros(length(observables), 1) : zeros(length(observables), steps) # matrix with dimensions of N(observables) x N(steps)
+function timeevolve!(initial_args, time_step_funcs, steps::Int, observables...; kwargs...)
+    out = kwargs[:save_only_last] ? zeros(length(observables), 1) : zeros(length(observables), steps) # matrix with dimensions of N(observables) x N(steps)
+    return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; kwargs...)
+end
+
+function timeevolve!(initial_args, time_step_funcs, steps::Int, out, observables...; save_only_last::Bool = false)
     up_out = generate_calc_obs_func(out, observables)
     args = initial_args # initial arguments that are passed on to time evolution
     is_args_a_tuple = isa(args, Tuple)

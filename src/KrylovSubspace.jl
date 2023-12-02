@@ -36,14 +36,18 @@ end
 
 function krylovevolve(state0, initial_subspace_id, H, dt::Real, t::Real, k::Integer, observables...; kwargs...)
     pa_k = PA_krylov_sub(k, H)
-    return krylovevolve(state0, initial_subspace_id, H, dt, t, k, pa_k, observables...; kwargs...)
+    work_vector = deepcopy(state0)
+    return krylovevolve(state0, work_vector, initial_subspace_id, H, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub, observables...;
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
+function krylovevolve(state0, work_vector, initial_subspace_id::Integer, H, dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub, observables...;
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
-    initial_args = (Vector.(deepcopy(state0)), initial_subspace_id)
+    for i in eachindex(state0)
+        work_vector[i] .= state0[i]
+    end
+    initial_args = (work_vector, initial_subspace_id)
 
     time_step_funcs = [] # functions to run in a single timestep
     take_time_step! = take_krylov_time_step_subspace_function(H, k, dt, pa_k)
@@ -57,8 +61,11 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
             insert!(time_step_funcs, 2, effect!)
         end
     end
-        
-    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    
+    if isa(out, Nothing)
+        return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    end
+    return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
 function take_krylov_time_step_subspace_function(H, k, dt, pa_k)

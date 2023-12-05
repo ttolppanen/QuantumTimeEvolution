@@ -36,7 +36,7 @@ end
 # end
 
 function f()
-    d = 2; L = 12;
+    d = 2; L = 16;
     dt = 0.02; t = 30; k = 6
     rng_seed = 2
     state = allone(d, L)

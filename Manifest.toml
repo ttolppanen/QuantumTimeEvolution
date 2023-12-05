@@ -117,6 +117,12 @@ git-tree-sha1 = "2fba81a302a7be671aefe194f0525ef231104e7f"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.8"
 
+[[deps.ChunkSplitters]]
+deps = ["TestItems"]
+git-tree-sha1 = "a0d0d0372dbc00735bce1976928094acedfdbf8e"
+uuid = "ae650224-84b6-46f8-82ea-d812ca08434e"
+version = "2.0.3"
+
 [[deps.Compat]]
 deps = ["Dates", "LinearAlgebra", "UUIDs"]
 git-tree-sha1 = "8a62af3e248a8c4bad6b32cbbe663ae02275e32c"
@@ -713,6 +719,11 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.TestItems]]
+git-tree-sha1 = "8621ba2637b49748e2dc43ba3d84340be2938022"
+uuid = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+version = "0.1.1"
 
 [[deps.ThreadedScans]]
 deps = ["ArgCheck"]

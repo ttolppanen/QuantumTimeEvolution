@@ -6,16 +6,12 @@ using LinearAlgebra
 using PlotAndSave
 using OrderedCollections
 
-function traj_mean(c)
-    elements = length(c.data)
-    out = take!(c)
-    put!(c, out)
-    for _ in 2:elements
-        out_new = take!(c)
-        out .+= out_new
-        put!(c, out_new)
+function traj_mean(result)
+    out = zeros(size(result[1]))
+    for traj in result
+        out .+= traj
     end
-    return copy(out ./ elements)
+    return out ./ length(result)
 end
 
 function initial_parameters()
@@ -82,4 +78,4 @@ function f()
     end
 end
 
-@profview f()
+@time f()

@@ -2,6 +2,8 @@
 # using LinearAlgebra
 # using Distributed
 
+using ChunkSplitters
+
 export solvetrajectories
 export solvetrajectories_channel
 export traj_channels
@@ -11,11 +13,8 @@ export traj_channels
 
 function traj_channels(out, traj::Integer, args...)
     n_threads = Threads.nthreads()
-    pa_out = Channel{typeof(out)}(traj)
+    pa_out = [copy(out) for _ in 1:traj]
     pa_args = Channel{typeof(args)}(n_threads)
-    for _ in 1:traj
-        put!(pa_out, deepcopy(out))
-    end
     for _ in 1:n_threads
         put!(pa_args, deepcopy(args))
     end
@@ -23,12 +22,12 @@ function traj_channels(out, traj::Integer, args...)
 end
 
 function solvetrajectories_channel(f::Function, traj::Integer, pa_args, pa_out)
-    @sync for _ in 1:traj
+    @sync for (traj_chunk, _) in chunks(1:traj, Threads.nthreads())
         Threads.@spawn begin
-            out = take!(pa_out)
             args = take!(pa_args)
-            f(out, args...)
-            put!(pa_out, out)
+            for i in traj_chunk
+                f(pa_out[i], args...)
+            end
             put!(pa_args, args)
         end
     end

@@ -134,6 +134,12 @@ git-tree-sha1 = "2fba81a302a7be671aefe194f0525ef231104e7f"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.8"
 
+[[deps.ChunkSplitters]]
+deps = ["TestItems"]
+git-tree-sha1 = "a0d0d0372dbc00735bce1976928094acedfdbf8e"
+uuid = "ae650224-84b6-46f8-82ea-d812ca08434e"
+version = "2.0.3"
+
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
 git-tree-sha1 = "cd67fc487743b2f0fd4380d4cbd3a24660d0eec8"
@@ -943,7 +949,7 @@ version = "6.5.3+1"
 deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
 path = "../../QuantumOperators"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.22"
+version = "0.1.23"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]
@@ -952,7 +958,7 @@ uuid = "0a1581c1-ab82-4660-a1be-26f7b3483457"
 version = "0.1.5"
 
 [[deps.QuantumTimeEvolution]]
-deps = ["Distributed", "ITensors", "LinearAlgebra", "QuantumOperators", "SparseArrays", "StaticArrays"]
+deps = ["ChunkSplitters", "Distributed", "ITensors", "LinearAlgebra", "QuantumOperators", "SparseArrays", "StaticArrays"]
 path = ".."
 uuid = "7373133c-a6f7-4e95-971a-e453f442ca60"
 version = "0.6.0"
@@ -1156,6 +1162,11 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.TestItems]]
+git-tree-sha1 = "8621ba2637b49748e2dc43ba3d84340be2938022"
+uuid = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+version = "0.1.1"
 
 [[deps.ThreadedScans]]
 deps = ["ArgCheck"]

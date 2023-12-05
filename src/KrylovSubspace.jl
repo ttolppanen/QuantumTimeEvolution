@@ -61,7 +61,6 @@ function krylovevolve(state0, work_vector, initial_subspace_id::Integer, H, dt::
             insert!(time_step_funcs, 2, effect!)
         end
     end
-    
     if isa(out, Nothing)
         return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
     end

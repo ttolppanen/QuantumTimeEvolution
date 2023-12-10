@@ -1,5 +1,7 @@
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+FastClosures = "9aa1b823-49e4-5ca5-8b0f-3971ec8bab6a"
+JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 PlotAndSave = "17f9de49-761f-4084-9189-3237cc0765fb"

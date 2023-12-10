@@ -20,7 +20,6 @@ end
 
 function timeevolve!(initial_args, time_step_funcs, steps::Int, out::Matrix{Float64}, observables...; save_only_last::Bool = false)
     up_out = generate_calc_obs_func(out, observables)
-    # typeof IMPORTANT
     args::typeof(initial_args) = initial_args # initial arguments that are passed on to time evolution
     is_args_a_tuple = isa(args, Tuple)
     is_args_a_tuple ? up_out(1, args...) : up_out(1, args) # initial_args observables values
@@ -59,11 +58,11 @@ function timeevolve!(initial_args, time_step_funcs, steps::Int, out::Matrix{Floa
 end
 
 function generate_calc_obs_func(out, observables)
-    out::typeof(out) = out
     function up_out(i, args...)
         for (j, obs) in pairs(observables)
             out[j, i] = obs(args...)
         end
+        nothing
     end
     return up_out
 end

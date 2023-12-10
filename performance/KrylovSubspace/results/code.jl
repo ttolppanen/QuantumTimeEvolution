@@ -39,13 +39,13 @@ function f()
     d = 2; L = 16;
     dt = 0.02; t = 30; k = 6
     rng_seed = 2
-    state = allone(d, L)
+    state = zeroone(d, L)
     H = bosehubbard(d, L)
     n = nall(d, L)
     n1 = singlesite_n(d, L, 1)
     observables = [state -> expval(state, n), state -> expval(state, n1)]
 
-    p = 0.0
+    p = 0.1
     msrop = measurementoperators(nop(d), L)
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
     effect!(state) = measurement_and_feedback!(state, msrop, p, feedback)
@@ -89,7 +89,7 @@ function f()
     push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
     push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
 
-    path = joinpath(@__DIR__, "KrylovSubspace")
+    path = joinpath(@__DIR__, "results")
     makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 

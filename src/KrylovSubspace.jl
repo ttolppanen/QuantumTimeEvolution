@@ -36,7 +36,7 @@ end
 
 function krylovevolve(state0, initial_subspace_id, H, dt::Real, t::Real, k::Integer, observables...; kwargs...)
     pa_k = PA_krylov_sub(k, H)
-    work_vector = deepcopy(state0)
+    work_vector = Vector.(deepcopy(state0))
     return krylovevolve(state0, work_vector, initial_subspace_id, H, dt, t, k, pa_k, observables...; kwargs...)
 end
 function krylovevolve(state0, work_vector, initial_subspace_id::Integer, H, dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub, observables...;

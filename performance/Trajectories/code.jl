@@ -5,6 +5,7 @@ using LinearAlgebra
 @everywhere using QuantumTimeEvolution
 using PlotAndSave
 using OrderedCollections
+using FastClosures
 
 function traj_mean(result)
     out = zeros(size(result[1]))
@@ -19,7 +20,7 @@ function initial_parameters()
     param[:dt] = 0.02
     param[:t] = 30
     param[:d] = 3
-    param[:L] = 6
+    param[:L] = 10
     param[:state] = ValueInfo(productstate(param[:d], [isodd(i) ? 2 : 0 for i in 1:param[:L]]), "|2020...>")
     param[:alg] = "krylov BN-subspace"
     param[:k] = 6
@@ -55,22 +56,22 @@ function f()
     feedback = feedback_measurement_subspace(param[:effect].val.fb, msrop, indices; digit_error = 10, id_relative_guess = -1)
 
     n = subspace_split(nall(d, L) ./ L, ranges, perm_mat)
-    obs(state, id) = expval(state[id], n[id])
+    obs = @closure((state, id) -> expval(state[id], n[id]))
 
     H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U = Us[1]), ranges, perm_mat)
 
     dt = param[:dt]; t = param[:t];
     pa_k = PA_krylov_sub(param[:k], H)
-    pa_args, pa_out = traj_channels(zeros(1, length(0:dt:t)), traj, deepcopy(state), pa_k)
+    pa_args, pa_out = traj_channels(zeros(1, length(0:dt:t)), traj, Vector.(deepcopy(state)), pa_k)
 
     @time for U in Us
         H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U), ranges, perm_mat)
         plot_lines = []
         @time for p in ps
-            effect!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
+            effect! = @closure((state, id) -> random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1))
             
             dt = param[:dt]; t = param[:t]; k = param[:k]
-            r_f(out, work_v, pa_k) = krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, obs; effect!, out)
+            r_f = ((out, work_v, pa_k) -> krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, obs; effect!, out))
             solvetrajectories_channel(r_f, traj, pa_args, pa_out)
             r = traj_mean(pa_out)
             push!(plot_lines, LineInfo(0:dt:t, r[1, :], traj, "p = $p"))
@@ -78,4 +79,4 @@ function f()
     end
 end
 
-@time f()
+@profview f()

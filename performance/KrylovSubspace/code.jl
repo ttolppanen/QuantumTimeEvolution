@@ -5,6 +5,8 @@ using PlotAndSave
 using LinearAlgebra
 using Profile
 using Random
+using JET
+using FastClosures
 
 function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_prob::Real, fb_op)
     for i in 1:length(msr_op)
@@ -35,17 +37,30 @@ end
 #     return id_after_measurement
 # end
 
+function take_krylov_time_step_subspace_function(H, k, dt, pa_k)
+    function take_time_step!(state, id)
+        krylovsubspace!(state[id], H[id], k, pa_k.H_k, pa_k.U[id], pa_k.z[id])
+        if !all(isfinite, pa_k.H_k)
+            throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
+        end
+        @views mul!(state[id], pa_k.U[id], (exp(-1im * dt * pa_k.H_k)[:, 1]))
+        normalize!(state[id])
+        return state, id
+    end
+    return take_time_step!
+end
+
 function f()
     d = 2; L = 16;
     dt = 0.02; t = 30; k = 6
     rng_seed = 2
-    state = allone(d, L)
+    state = zeroone(d, L)
     H = bosehubbard(d, L)
     n = nall(d, L)
     n1 = singlesite_n(d, L, 1)
     observables = [state -> expval(state, n), state -> expval(state, n1)]
 
-    p = 0.0
+    p = 0.1
     msrop = measurementoperators(nop(d), L)
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
     effect!(state) = measurement_and_feedback!(state, msrop, p, feedback)
@@ -69,28 +84,32 @@ function f()
     n = subspace_split(n, ranges, perm_mat)
     n1 = subspace_split(n1, ranges, perm_mat)
     observables = [
-        (state, id) -> expval(state[id], n[id]),
-        (state, id) -> expval(state[id], n1[id])]
+        @closure((state, id) -> expval(state[id], n[id])),
+        @closure((state, id) -> expval(state[id], n1[id]))]
 
     msrop = measurementoperators(nop(d), L)
     msrop = measurement_subspace(msrop, ranges, perm_mat)
     feedback = [singlesite(n_bosons_projector(d, 0), L, i) for i in 1:L]
     feedback = feedback_measurement_subspace(feedback, msrop, indices; digit_error = 10, id_relative_guess = -1)
 
-    effect!(state, id) = random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1)
+    effect! = @closure((state, id) -> random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1))
 
-    # r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
+    # krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
+    # @time krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
     Random.seed!(rng_seed)
-    work_v = deepcopy(state)
-    out = zeros(2, length(0:dt:t))
-    pa_k = PA_krylov_sub(k, H)
-    r = krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, observables...; out, effect!)
-    @time r = krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, observables...; out, effect!)
-    push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
-    push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
 
-    path = joinpath(@__DIR__, "KrylovSubspace")
-    makeplot(path, lines...; xlabel = "t", ylabel = "")
+    pa_k = PA_krylov_sub(k, H)
+    traj = 1000
+    pa_args, pa_out = traj_channels(zeros(2, length(0:dt:t)), traj, Vector.(deepcopy(state)), pa_k)
+
+    r_f = @closure((out, work_v, pa_k) -> krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, observables...; out, effect!))
+    solvetrajectories_channel(r_f, traj, pa_args, pa_out)
+    @profview solvetrajectories_channel(r_f, traj, pa_args, pa_out)
+    # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
+    # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
+
+    # path = joinpath(@__DIR__, "results")
+    # makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
 f();

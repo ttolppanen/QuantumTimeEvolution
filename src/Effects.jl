@@ -49,10 +49,10 @@ function random_measurement_feedback!(state::AbstractVector{<:Number}, msr_op::M
 end
 # skip_subspaces : id of the subspaces to skip; e.g. skip_subspaces = 1 skips the 0 boson subspace, skip_subspaces = [1, 3] skips 0 and 2 boson subspaces (in the total boson subspace case)
 function random_measurement_feedback!(state::Vector{<:AbstractVector}, subspace_id::Integer, msr_op::Vector, 
-    msr_prob::Real, feedback::Vector; skip_subspaces = nothing)
+    msr_prob::Real, feedback::Vector; skip_subspaces = [])
 
     if in(subspace_id, skip_subspaces)
-        return state, subspace_id
+        return state, subspace_id::Int64
     end
     current_subspace_id = subspace_id
     for site in 1:length(msr_op[current_subspace_id])
@@ -68,7 +68,7 @@ function random_measurement_feedback!(state::Vector{<:AbstractVector}, subspace_
             current_subspace_id = new_id
         end
     end
-    return state, current_subspace_id
+    return state, current_subspace_id::Int64
 end
 
 function random_measurement_random_feedback!(state::AbstractVector{<:Number}, msr_op::MsrOpMatrixType, msr_prob::Real, feedback::AbstractVector, feedback_prob::Real)

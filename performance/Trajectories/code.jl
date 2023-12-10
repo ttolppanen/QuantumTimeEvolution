@@ -41,7 +41,7 @@ function f()
     param = initial_parameters()
 
     # -----------
-    traj = 100
+    traj = 160
     ps = 0.01:0.01:0.1
     Us = [7, 9, 10, 11, 13]
     # -----------
@@ -61,8 +61,8 @@ function f()
     H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U = Us[1]), ranges, perm_mat)
 
     dt = param[:dt]; t = param[:t];
-    pa_k = PA_krylov_sub(param[:k], H)
-    pa_args, pa_out = traj_channels(zeros(1, length(0:dt:t)), traj, Vector.(deepcopy(state)), pa_k)
+    pa_k = PA_krylov_sub(state, param[:k])
+    pa_args, pa_out = traj_channels(zeros(1, length(0:dt:t)), traj, pa_k)
 
     @time for U in Us
         H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U), ranges, perm_mat)
@@ -71,7 +71,7 @@ function f()
             effect! = @closure((state, id) -> random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1))
             
             dt = param[:dt]; t = param[:t]; k = param[:k]
-            r_f = ((out, work_v, pa_k) -> krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, obs; effect!, out))
+            r_f = ((out, pa_k) -> krylovevolve(state, initial_id, H, dt, t, k, pa_k, obs; effect!, out))
             solvetrajectories_channel(r_f, traj, pa_args, pa_out)
             r = traj_mean(pa_out)
             push!(plot_lines, LineInfo(0:dt:t, r[1, :], traj, "p = $p"))
@@ -79,4 +79,4 @@ function f()
     end
 end
 
-@profview f()
+@time f()

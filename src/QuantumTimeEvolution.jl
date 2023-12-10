@@ -6,6 +6,7 @@ using LinearAlgebra
 using ITensors
 using StaticArrays
 using QuantumOperators
+using ExponentialUtilities
 
 #internal
 include("Utility/SplitKwargs.jl")

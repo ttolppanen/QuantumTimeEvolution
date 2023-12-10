@@ -29,6 +29,12 @@ version = "2.3.0"
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
+[[deps.ArrayInterface]]
+deps = ["Adapt", "LinearAlgebra", "Requires", "SparseArrays", "SuiteSparse"]
+git-tree-sha1 = "16267cf279190ca7c1b30d020758ced95db89cd0"
+uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
+version = "7.5.1"
+
 [[deps.ArrayLayouts]]
 deps = ["FillArrays", "LinearAlgebra", "SparseArrays"]
 git-tree-sha1 = "af43df5704827c8618afd36eb56fcab20d3041ee"
@@ -195,6 +201,12 @@ version = "0.9.3"
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
+[[deps.ExponentialUtilities]]
+deps = ["Adapt", "ArrayInterface", "GPUArraysCore", "GenericSchur", "LinearAlgebra", "PrecompileTools", "Printf", "SparseArrays", "libblastrampoline_jll"]
+git-tree-sha1 = "602e4585bcbd5a25bc06f514724593d13ff9e862"
+uuid = "d4d017d3-3776-5f7e-afef-a10c40355c18"
+version = "1.25.0"
+
 [[deps.ExprTools]]
 git-tree-sha1 = "27415f162e6028e81c72b82ef756bf321213b6ec"
 uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
@@ -259,6 +271,12 @@ deps = ["ExprTools", "InteractiveUtils", "LLVM", "Libdl", "Logging", "Scratch", 
 git-tree-sha1 = "72b2e3c2ba583d1a7aa35129e56cf92e07c083e3"
 uuid = "61eb1bfa-7361-4325-ad38-22787b887f55"
 version = "0.21.4"
+
+[[deps.GenericSchur]]
+deps = ["LinearAlgebra", "Printf"]
+git-tree-sha1 = "fb69b2a645fa69ba5f474af09221b9308b160ce6"
+uuid = "c145ed77-6b09-5dd9-b285-bf645a82121e"
+version = "0.5.3"
 
 [[deps.Glob]]
 git-tree-sha1 = "97285bbd5230dd766e9ef6749b80fc617126d496"
@@ -695,6 +713,10 @@ deps = ["CUDA", "LinearAlgebra", "PackageExtensionCompat"]
 git-tree-sha1 = "cf857ff7de76f39e5daef6d032e8a74279ddff6a"
 uuid = "4db3bf67-4bd7-4b4e-b153-31dc3fb37143"
 version = "0.2.1"
+
+[[deps.SuiteSparse]]
+deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
+uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[deps.TOML]]
 deps = ["Dates"]

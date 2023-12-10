@@ -41,7 +41,7 @@ function f()
     param = initial_parameters()
 
     # -----------
-    traj = 160
+    traj = 100
     ps = 0.01:0.01:0.1
     Us = [7, 9, 10, 11, 13]
     # -----------
@@ -57,8 +57,6 @@ function f()
 
     n = subspace_split(nall(d, L) ./ L, ranges, perm_mat)
     obs = @closure((state, id) -> expval(state[id], n[id]))
-
-    H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U = Us[1]), ranges, perm_mat)
 
     dt = param[:dt]; t = param[:t];
     pa_k = PA_krylov_sub(state, param[:k])
@@ -79,4 +77,4 @@ function f()
     end
 end
 
-@time f()
+@profview f()

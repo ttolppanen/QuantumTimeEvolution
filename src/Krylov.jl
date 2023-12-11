@@ -42,7 +42,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     initial_args = pa_k.work_vector
     time_step_funcs = [] # functions to run in a single timestep
 
-    take_time_step! = take_krylov_time_step_function(H, dt, pa_k)
+    take_time_step! = take_krylov_time_step_function(H, -1.0im * dt, pa_k)
     push!(time_step_funcs, take_time_step!)
     push!(time_step_funcs, :calc_obs)
 
@@ -57,7 +57,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
 end
 
-function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt::Real, pa_k::PA_krylov)
+function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::PA_krylov)
     function take_time_step!(state)
         lanczos!(pa_k.ks, H, state)
         expv!(state, dt, pa_k.ks; pa_k.cache)

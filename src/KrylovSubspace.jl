@@ -18,11 +18,12 @@ export PA_krylov_sub
 
 # d : statevector dimension;
 struct PA_krylov_sub{T}
-    H_k::T
+    H_k::Matrix{ComplexF64}
     U::Vector{Matrix{ComplexF64}}
     z::Vector{Vector{ComplexF64}}
+    exp_cache::Tuple{Vector{Matrix{ComplexF64}}, Vector{Float64}}
     function PA_krylov_sub(k::Integer, H)
-        H_k = complex(zeros(MMatrix{k, k}))
+        H_k = complex(zeros(k, k))
         U = []
         z = []
         for H_i in H
@@ -30,7 +31,8 @@ struct PA_krylov_sub{T}
             push!(U, complex(zeros(d_i, k)))
             push!(z, complex(zeros(d_i)))
         end
-        new{typeof(H_k)}(H_k, U, z)
+        exp_cache = ExponentialUtilities.alloc_mem(H_k, ExponentialUtilities.ExpMethodHigham2005())
+        new{typeof(H_k)}(H_k, U, z, exp_cache)
     end
 end
 
@@ -73,7 +75,9 @@ function take_krylov_time_step_subspace_function(H, k, dt, pa_k)
         if !all(isfinite, pa_k.H_k)
             throw(ArgumentError("Hₖ contains Infs or NaNs. This is is usually because k is too small, too large or there is no time evolution H * state0 = 0.")) 
         end
-        @views mul!(state[id], pa_k.U[id], (exp(-1im * dt * pa_k.H_k)[:, 1]))
+        pa_k.H_k .*= -1im * dt
+        exponential!(pa_k.H_k, ExponentialUtilities.ExpMethodHigham2005(), pa_k.exp_cache)
+        @views mul!(state[id], pa_k.U[id], pa_k.H_k[:, 1])
         normalize!(state[id])
         return state, id
     end

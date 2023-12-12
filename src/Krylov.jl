@@ -70,7 +70,7 @@ function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, k::Integer,
 end
 
 # here H_k, U and z are pre-allocated
-function krylovsubspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::MMatrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
+function krylovsubspace!(state::AbstractArray{<:Number}, H::AbstractMatrix{<:Number}, k::Integer, H_k::Matrix, U::AbstractMatrix{<:Number}, z::AbstractVector{<:Number})
     # doesnt check if HΨ = 0
     U[:, 1] .= state
     mul!(z, H, state)

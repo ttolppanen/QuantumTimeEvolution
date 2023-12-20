@@ -5,13 +5,12 @@
 using ChunkSplitters
 
 export solvetrajectories
-export solvetrajectories_channel
-export traj_channels
+export pre_alloc_threads
 
 #f : function; a function that takes no arguments and returns the time-evolution
 #traj : number of trajectories
 
-function traj_channels(out, traj::Integer, args...)
+function pre_alloc_threads(out, traj::Integer, args...)
     n_threads = Threads.nthreads()
     pa_out = [copy(out) for _ in 1:traj]
     pa_args = Channel{typeof(args)}(n_threads)
@@ -21,15 +20,26 @@ function traj_channels(out, traj::Integer, args...)
     return pa_args, pa_out
 end
 
-function solvetrajectories_channel(f::Function, traj::Integer, pa_args, pa_out)
-    @sync for (traj_chunk, _) in chunks(1:traj, Threads.nthreads())
-        Threads.@spawn begin
-            args = take!(pa_args)
-            for i in traj_chunk
-                f(pa_out[i], args...)
+function solvetrajectories(f::Function, traj::Integer, pa_args, pa_out; paral::Symbol = :none)
+    if paral == :threads
+        blas_threads = BLAS.get_num_threads()
+        BLAS.set_num_threads(1)
+        @sync for (traj_chunk, _) in chunks(1:traj, Threads.nthreads())
+            Threads.@spawn begin
+                args = take!(pa_args)
+                for i in traj_chunk
+                    f(pa_out[i], args...)
+                end
+                put!(pa_args, args)
             end
-            put!(pa_args, args)
         end
+        BLAS.set_num_threads(blas_threads)
+    elseif paral == :none
+        args = take!(pa_args)
+        for i in 1:traj
+            f(pa_out[i], args...)
+        end
+        put!(pa_args, args)
     end
 end
 

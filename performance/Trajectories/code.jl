@@ -20,7 +20,7 @@ function initial_parameters()
     param[:dt] = 0.02
     param[:t] = 30
     param[:d] = 3
-    param[:L] = 10
+    param[:L] = 4
     param[:state] = ValueInfo(productstate(param[:d], [isodd(i) ? 2 : 0 for i in 1:param[:L]]), "|2020...>")
     param[:alg] = "krylov BN-subspace"
     param[:k] = 6
@@ -51,6 +51,7 @@ function f()
     ranges, perm_mat = total_boson_number_subspace_tools(d, L)
     initial_id = find_subspace(param[:state].val, indices)
     state = subspace_split(param[:state].val, ranges, perm_mat)
+    state_copy = deepcopy(state)
 
     msrop = measurement_subspace(param[:effect].val.msr, ranges, perm_mat)
     feedback = feedback_measurement_subspace(param[:effect].val.fb, msrop, indices; digit_error = 10, id_relative_guess = -1)
@@ -60,7 +61,7 @@ function f()
 
     dt = param[:dt]; t = param[:t];
     pa_k = PA_krylov_sub(state, param[:k])
-    pa_args, pa_out = traj_channels(zeros(1, length(0:dt:t)), traj, pa_k)
+    pa_args, pa_out = pre_alloc_threads(zeros(1, length(0:dt:t)), traj, pa_k)
 
     @time for U in Us
         H = subspace_split(bosehubbard(d, L; w = param[:w], J = param[:J], U), ranges, perm_mat)
@@ -69,8 +70,8 @@ function f()
             effect! = @closure((state, id) -> random_measurement_feedback!(state, id, msrop, p, feedback; skip_subspaces = 1))
             
             dt = param[:dt]; t = param[:t]; k = param[:k]
-            r_f = ((out, pa_k) -> krylovevolve(state, initial_id, H, dt, t, k, pa_k, obs; effect!, out))
-            solvetrajectories_channel(r_f, traj, pa_args, pa_out)
+            r_f = @closure((out, pa_k) -> krylovevolve(state, initial_id, H, dt, t, k, pa_k, obs; effect!, out))
+            solvetrajectories(r_f, traj, pa_args, pa_out; paral = :threads)
             r = traj_mean(pa_out)
             push!(plot_lines, LineInfo(0:dt:t, r[1, :], traj, "p = $p"))
         end

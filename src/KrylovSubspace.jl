@@ -47,18 +47,29 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
     end
     initial_args = (pa_k.work_vector, initial_subspace_id)
 
-    time_step_funcs = [] # functions to run in a single timestep
-    take_time_step! = take_krylov_time_step_subspace_function(H, -1.0im * dt, pa_k)
-    push!(time_step_funcs, take_time_step!)
-    push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
+    take_time_step! = take_krylov_time_step_subspace_function(deepcopy(H), -1.0im * dt, pa_k)
 
     if !isa(effect!, Nothing)
         if save_before_effect
-            push!(time_step_funcs, effect!)
+            time_step_funcs = (
+                take_time_step!,
+                :calc_obs,
+                effect!
+            )
         else
-            insert!(time_step_funcs, 2, effect!)
+            time_step_funcs = (
+                take_time_step!,
+                effect!,
+                :calc_obs
+            )
         end
+    else
+        time_step_funcs = (
+                take_time_step!,
+                :calc_obs
+            )
     end
+
     if isa(out, Nothing)
         return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
     end
@@ -66,11 +77,11 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
 end
 
 function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{ComplexF64, Int64}}, dt::ComplexF64, pa_k::PA_krylov_sub)
-    function take_time_step!(state::Vector{Vector{ComplexF64}}, id::Int64)
+    take_time_step! = @closure((state, id) -> begin
         lanczos!(pa_k.ks[id], H[id], state[id])
         expv!(state[id], dt, pa_k.ks[id]; pa_k.cache)
         normalize!(state[id])
-        return state::Vector{Vector{ComplexF64}}, id::Int64
-    end
+        return state, id
+    end)
     return take_time_step!
 end

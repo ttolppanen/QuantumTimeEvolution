@@ -13,7 +13,7 @@ export bosehubbardgates
 # save_before_effect : if you want to calculate observables before effect;
 
 function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observables...; 
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, kwargs...) #keyword arguments for ITensors.apply
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing, kwargs...) #keyword arguments for ITensors.apply
     
     steps = length(0:dt:t)
     initial_args = deepcopy(mps0)
@@ -32,7 +32,10 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observa
         end
     end
         
-    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    if isa(out, Nothing)
+        return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    end
+    return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
 function take_mps_time_step_function(gates, kwargs)

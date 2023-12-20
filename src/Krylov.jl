@@ -34,7 +34,7 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return krylovevolve(state0, H, dt, t, k, pa_k, observables...; kwargs...)
 end
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...;
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
@@ -54,7 +54,10 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
         end
     end
         
-    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    if isa(out, Nothing)
+        return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    end
+    return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
 function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::PA_krylov)

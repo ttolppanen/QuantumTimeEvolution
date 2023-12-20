@@ -12,7 +12,7 @@ export exactevolve
 # save_before_effect : if you want to calculate observables before effect;
 
 function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; 
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
 
     steps = length(0:dt:t)
     initial_args = copy(state0)
@@ -30,7 +30,10 @@ function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Numbe
         end
     end
         
-    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    if isa(out, Nothing)
+        return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    end
+    return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
 function take_exact_time_step_function(U)

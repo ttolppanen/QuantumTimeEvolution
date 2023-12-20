@@ -12,7 +12,7 @@
 # save_before_effect : if you want to calculate observables before effect;
 
 function exactevolve(state0, initial_id::Integer, U, dt::Real, t::Real, observables...
-    ; effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
+    ; effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
 
     steps = length(0:dt:t)
     initial_args = (Vector.(deepcopy(state0)), initial_id) # id identifies the current subspace
@@ -29,8 +29,11 @@ function exactevolve(state0, initial_id::Integer, U, dt::Real, t::Real, observab
             insert!(time_step_funcs, 2, effect!)
         end
     end
-        
-    return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+
+    if isa(out, Nothing)
+        return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)
+    end
+    return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
 function take_exact_time_step_subspace_function!(U)

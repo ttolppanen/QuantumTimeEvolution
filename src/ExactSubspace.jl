@@ -11,11 +11,18 @@
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # save_before_effect : if you want to calculate observables before effect;
 
-function exactevolve(state0, initial_id::Integer, U, dt::Real, t::Real, observables...
+function exactevolve(state0, initial_id::Integer, U, dt::Real, t::Real, observables...; kwargs...)
+    work_vector = Vector.(deepcopy(state0))
+    exactevolve(state0, work_vector, initial_id, U, dt, t, observables...; kwargs...)
+end
+function exactevolve(state0, work_vector, initial_id::Integer, U, dt::Real, t::Real, observables...
     ; effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
 
     steps = length(0:dt:t)
-    initial_args = (Vector.(deepcopy(state0)), initial_id) # id identifies the current subspace
+    for i in eachindex(state0)
+        work_vector[i] .= state0[i]
+    end
+    initial_args = (work_vector, initial_id) # id identifies the current subspace
     time_step_funcs = [] # functions to run in a single timestep
 
     take_time_step! = take_exact_time_step_subspace_function!(U)

@@ -1,8 +1,7 @@
 # using ITensors
 # using LinearAlgebra
 # using Distributed
-
-using ChunkSplitters
+# using ChunkSplitters
 
 export solvetrajectories
 export pre_alloc_threads

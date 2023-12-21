@@ -8,6 +8,7 @@ using StaticArrays
 using QuantumOperators
 using ExponentialUtilities
 using FastClosures
+using ChunkSplitters
 
 #internal
 include("Utility/SplitKwargs.jl")

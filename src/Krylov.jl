@@ -40,19 +40,9 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     steps = length(0:dt:t)
     pa_k.work_vector .= state0
     initial_args = pa_k.work_vector
-    time_step_funcs = [] # functions to run in a single timestep
 
     take_time_step! = take_krylov_time_step_function(H, -1.0im * dt, pa_k)
-    push!(time_step_funcs, take_time_step!)
-    push!(time_step_funcs, :calc_obs)
-
-    if !isa(effect!, Nothing)
-        if save_before_effect
-            push!(time_step_funcs, effect!)
-        else
-            insert!(time_step_funcs, 2, effect!)
-        end
-    end
+    time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
         
     if isa(out, Nothing)
         return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)

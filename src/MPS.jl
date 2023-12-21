@@ -18,19 +18,8 @@ function mpsevolve(mps0::MPS, gates::Vector{ITensor}, dt::Real, t::Real, observa
     steps = length(0:dt:t)
     initial_args = deepcopy(mps0)
 
-    time_step_funcs = [] # functions to run in a single timestep
-
     take_time_step! = take_mps_time_step_function(gates, kwargs)
-    push!(time_step_funcs, take_time_step!)
-    push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
-
-    if !isa(effect!, Nothing)
-        if save_before_effect
-            push!(time_step_funcs, effect!)
-        else
-            insert!(time_step_funcs, 2, effect!)
-        end
-    end
+    time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
         
     if isa(out, Nothing)
         return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)

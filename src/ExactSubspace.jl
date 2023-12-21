@@ -23,19 +23,9 @@ function exactevolve(state0, work_vector, initial_id::Integer, U, dt::Real, t::R
         work_vector[i] .= state0[i]
     end
     initial_args = (work_vector, initial_id) # id identifies the current subspace
-    time_step_funcs = [] # functions to run in a single timestep
 
     take_time_step! = take_exact_time_step_subspace_function!(U)
-    push!(time_step_funcs, take_time_step!)
-    push!(time_step_funcs, :calc_obs) # calculating observables is told with a keyword :calc_obs
-
-    if !isa(effect!, Nothing)
-        if save_before_effect
-            push!(time_step_funcs, effect!)
-        else
-            insert!(time_step_funcs, 2, effect!)
-        end
-    end
+    time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
 
     if isa(out, Nothing)
         return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)

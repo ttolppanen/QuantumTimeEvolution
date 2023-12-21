@@ -66,3 +66,26 @@ function generate_calc_obs_func(out, observables)
     end
     return up_out
 end
+
+function make_time_step_list(take_time_step!, effect!, save_before_effect)
+    if !isa(effect!, Nothing)
+        if save_before_effect
+            return (
+                take_time_step!,
+                :calc_obs,
+                effect!
+            )
+        else
+            return (
+                take_time_step!,
+                effect!,
+                :calc_obs
+            )
+        end
+    else
+        return (
+                take_time_step!,
+                :calc_obs
+            )
+    end
+end

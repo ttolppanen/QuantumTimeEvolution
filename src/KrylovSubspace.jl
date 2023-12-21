@@ -48,27 +48,7 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
     initial_args = (pa_k.work_vector, initial_subspace_id)
 
     take_time_step! = take_krylov_time_step_subspace_function(H, -1.0im * dt, pa_k)
-
-    if !isa(effect!, Nothing)
-        if save_before_effect
-            time_step_funcs = (
-                take_time_step!,
-                :calc_obs,
-                effect!
-            )
-        else
-            time_step_funcs = (
-                take_time_step!,
-                effect!,
-                :calc_obs
-            )
-        end
-    else
-        time_step_funcs = (
-                take_time_step!,
-                :calc_obs
-            )
-    end
+    time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
 
     if isa(out, Nothing)
         return timeevolve!(initial_args, time_step_funcs, steps, observables...; save_only_last)

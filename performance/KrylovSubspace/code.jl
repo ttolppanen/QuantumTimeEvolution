@@ -19,6 +19,14 @@ function measurement_and_feedback!(state::AbstractVector{<:Number}, msr_op, msr_
     return state
 end
 
+function traj_mean(result)
+    out = zeros(size(result[1]))
+    for traj in result
+        out .+= traj
+    end
+    return out ./ length(result)
+end
+
 # function measurement_and_feedback!(state, msr_op, msr_prob::Real, fb_op, id)
 #     id_after_measurement = id
 #     for L in 1:length(msr_op[id])
@@ -98,18 +106,20 @@ function f()
     # @time krylovevolve(state, initial_id, H, dt, t, k, observables...; effect!)
     Random.seed!(rng_seed)
 
-    pa_k = PA_krylov_sub(k, H)
+    pa_k = PA_krylov_sub(state, k)
     traj = 1000
-    pa_args, pa_out = traj_channels(zeros(2, length(0:dt:t)), traj, Vector.(deepcopy(state)), pa_k)
+    pa_args, pa_out = pre_alloc_threads(zeros(2, length(0:dt:t)), traj, pa_k)
 
-    r_f = @closure((out, work_v, pa_k) -> krylovevolve(state, work_v, initial_id, H, dt, t, k, pa_k, observables...; out, effect!))
-    solvetrajectories_channel(r_f, traj, pa_args, pa_out)
-    @profview solvetrajectories_channel(r_f, traj, pa_args, pa_out)
-    # push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
-    # push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
+    r_f = @closure((out, pa_k) -> krylovevolve(state, initial_id, H, dt, t, k, pa_k, observables...; out, effect!))
+    solvetrajectories(r_f, traj, pa_args, pa_out; paral = :threads)
+    @profview solvetrajectories(r_f, traj, pa_args, pa_out; paral = :threads)
 
-    # path = joinpath(@__DIR__, "results")
-    # makeplot(path, lines...; xlabel = "t", ylabel = "")
+    r = traj_mean(pa_out)
+    push!(lines, LineInfo(0:dt:t, r[1, :], 1, "in_subspace, n"))
+    push!(lines, LineInfo(0:dt:t, r[2, :], 1, "in_subspace, n1"))
+
+    path = joinpath(@__DIR__, "results")
+    makeplot(path, lines...; xlabel = "t", ylabel = "")
 end
 
 f();

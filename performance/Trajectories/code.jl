@@ -51,7 +51,6 @@ function f()
     ranges, perm_mat = total_boson_number_subspace_tools(d, L)
     initial_id = find_subspace(param[:state].val, indices)
     state = subspace_split(param[:state].val, ranges, perm_mat)
-    state_copy = deepcopy(state)
 
     msrop = measurement_subspace(param[:effect].val.msr, ranges, perm_mat)
     feedback = feedback_measurement_subspace(param[:effect].val.fb, msrop, indices; digit_error = 10, id_relative_guess = -1)

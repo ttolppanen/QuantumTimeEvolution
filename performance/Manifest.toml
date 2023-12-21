@@ -739,9 +739,9 @@ version = "0.4.17"
 
 [[deps.MPICH_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "MPIPreferences", "TOML"]
-git-tree-sha1 = "8a5b4d2220377d1ece13f49438d71ad20cf1ba83"
+git-tree-sha1 = "2ee75365ca243c1a39d467e35ffd3d4d32eef11e"
 uuid = "7cb0a576-ebde-5e09-9194-50597f1243b4"
-version = "4.1.2+0"
+version = "4.1.2+1"
 
 [[deps.MPIPreferences]]
 deps = ["Libdl", "Preferences"]
@@ -978,7 +978,7 @@ version = "6.5.3+1"
 deps = ["DataStructures", "ITensors", "KrylovKit", "LinearAlgebra", "SparseArrays"]
 path = "../../QuantumOperators"
 uuid = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
-version = "0.1.23"
+version = "0.1.25"
 
 [[deps.QuantumStates]]
 deps = ["ITensors", "SparseArrays"]
@@ -987,7 +987,7 @@ uuid = "0a1581c1-ab82-4660-a1be-26f7b3483457"
 version = "0.1.5"
 
 [[deps.QuantumTimeEvolution]]
-deps = ["ChunkSplitters", "Distributed", "FastClosures", "ITensors", "LinearAlgebra", "QuantumOperators", "SparseArrays", "StaticArrays"]
+deps = ["ChunkSplitters", "Distributed", "ITensors", "LinearAlgebra", "QuantumOperators", "SparseArrays", "StaticArrays"]
 path = ".."
 uuid = "7373133c-a6f7-4e95-971a-e453f442ca60"
 version = "0.6.0"

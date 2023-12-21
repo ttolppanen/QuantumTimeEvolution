@@ -11,11 +11,16 @@ export exactevolve
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # save_before_effect : if you want to calculate observables before effect;
 
-function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; 
+function exactevolve(state0::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; kwargs...)
+    work_vector = copy(state0)
+    exactevolve(state0, work_vector, U, dt, t, observables...; kwargs...)
+end
+function exactevolve(state0::AbstractVector{<:Number}, work_vector::AbstractVector{<:Number}, U::AbstractMatrix{<:Number}, dt::Real, t::Real, observables...; 
     effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false)
 
     steps = length(0:dt:t)
-    initial_args = copy(state0)
+    work_vector .= state0
+    initial_args = work_vector
     time_step_funcs = [] # functions to run in a single timestep
 
     take_time_step! = take_exact_time_step_function(U)

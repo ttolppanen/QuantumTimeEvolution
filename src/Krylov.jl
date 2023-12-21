@@ -21,11 +21,12 @@ struct PA_krylov{T}
     H_k::T
     U::Matrix{ComplexF64}
     z::Vector{ComplexF64}
+    work_vector::Vector{ComplexF64}
     function PA_krylov(d::Integer, k::Integer)
         H_k = complex(zeros(MMatrix{k, k}))
         U = complex(zeros(d, k))
         z = complex(zeros(d))
-        new{typeof(H_k)}(H_k, U, z)
+        new{typeof(H_k)}(H_k, U, z, deepcopy(z))
     end
 end
 
@@ -38,7 +39,8 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
-    initial_args = Vector(copy(state0))
+    pa_k.work_vector .= state0
+    initial_args = pa_k.work_vector
     time_step_funcs = [] # functions to run in a single timestep
 
     take_time_step! = take_krylov_time_step_function(H, k, dt, pa_k)

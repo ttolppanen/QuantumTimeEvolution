@@ -54,7 +54,7 @@ function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::P
     function take_time_step!(state)
         lanczos!(pa_k.ks, H, state)
         expv!(state, dt, pa_k.ks; pa_k.cache)
-        normalize!(state)
+        # normalize!(state)
         return state
     end
     return take_time_step!

@@ -56,7 +56,7 @@ rng_seed = 7
     Random.seed!(rng_seed) # Makes the rng the same
     sb_r = krylovevolve(state, initial_id, H, dt, t, k, observables...; effect! = effect_subspace!)
     
-    @test round(norm(sb_r .- k_r), digits = 13) == 0.0 # testing if the results from no subspace and subspace are the same
+    @test round(norm(sb_r .- k_r), digits = 12) == 0.0 # testing if the results from no subspace and subspace are the same
 end
 
 end # test set

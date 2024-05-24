@@ -30,7 +30,7 @@ end
 function take_mps_time_step_function(gates, kwargs)
     function take_time_step!(state)
         state .= apply(gates, state; kwargs...) # here the .= was required for this to work, but it doesn't make sense! If there is weird behaviour, check this.
-        normalize!(state)
+        # normalize!(state)
         return state
     end
     return take_time_step!

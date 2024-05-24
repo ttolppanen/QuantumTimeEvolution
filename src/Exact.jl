@@ -34,7 +34,7 @@ end
 function take_exact_time_step_function(U)
     function take_time_step!(state)
         state .= U * state
-        normalize!(state)
+        # normalize!(state)
         return state
     end
     return take_time_step!

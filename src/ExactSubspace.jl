@@ -36,7 +36,7 @@ end
 function take_exact_time_step_subspace_function!(U)
     function take_time_step!(state, id)
         state[id] .= U[id] * state[id]
-        normalize!(state[id])
+        # normalize!(state[id])
         return state, id
     end
     return take_time_step!

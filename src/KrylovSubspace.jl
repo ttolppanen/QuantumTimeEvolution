@@ -60,7 +60,7 @@ function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{Compl
     take_time_step! = @closure((state, id) -> begin
         lanczos!(pa_k.ks[id], H[id], state[id])
         expv!(state[id], dt, pa_k.ks[id]; pa_k.cache)
-        normalize!(state[id])
+        # normalize!(state[id])
         return state, id
     end)
     return take_time_step!

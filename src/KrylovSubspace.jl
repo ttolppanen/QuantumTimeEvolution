@@ -16,6 +16,7 @@ export PA_krylov_sub
 # pa_k : PA_krylov; pre-allocated matrices/vectors needed in the algorithm
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # save_before_effect : if you want to calculate observables before effect;
+# krylov_alg : the algorith used to calcutate the krylov subspace; defaults to :lancoz, use :arnoldi for non-hermitian Hamiltonians. 
 
 # d : statevector dimension;
 struct PA_krylov_sub
@@ -38,7 +39,7 @@ function krylovevolve(state0, initial_subspace_id, H, dt::Real, t::Real, k::Inte
     return krylovevolve(state0, initial_subspace_id, H, dt, t, k, pa_k, observables...; kwargs...)
 end
 function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub, observables...;
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing, krylov_alg = :lancoz)
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
@@ -47,7 +48,7 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
     end
     initial_args = (pa_k.work_vector, initial_subspace_id)
 
-    take_time_step! = take_krylov_time_step_subspace_function(H, -1.0im * dt, pa_k)
+    take_time_step! = take_krylov_time_step_subspace_function(H, -1.0im * dt, pa_k; alg = krylov_alg)
     time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
 
     if isa(out, Nothing)
@@ -56,9 +57,13 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
     return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
-function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{ComplexF64, Int64}}, dt::ComplexF64, pa_k::PA_krylov_sub)
+function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{ComplexF64, Int64}}, dt::ComplexF64, pa_k::PA_krylov_sub; alg = :lancoz)
     take_time_step! = @closure((state, id) -> begin
-        lanczos!(pa_k.ks[id], H[id], state[id])
+        if alg == :lancoz
+            lanczos!(pa_k.ks[id], H[id], state[id])
+        elseif alg == :arnoldi
+            arnoldi!(pa_k.ks[id], H[id], state[id])
+        end
         expv!(state[id], dt, pa_k.ks[id]; pa_k.cache)
         # normalize!(state[id])
         return state, id

@@ -15,6 +15,7 @@ export krylov_error_estimate
 # pa_k : PA_krylov; pre-allocated matrices/vectors needed in the algorithm
 # effect! : function with one argument, the state; something to do to the state after each timestep
 # save_before_effect : if you want to calculate observables before effect;
+# krylov_alg : the algorith used to calcutate the krylov subspace; defaults to :lancoz, use :arnoldi for non-hermitian Hamiltonians. 
 
 # d : statevector dimension;
 struct PA_krylov
@@ -34,14 +35,14 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return krylovevolve(state0, H, dt, t, k, pa_k, observables...; kwargs...)
 end
 function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Number}, dt::Real, t::Real, k::Integer, pa_k::PA_krylov, observables...;
-    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
+    effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing, krylov_alg = :lancoz)
     
     if k < 2 throw(ArgumentError("k <= 1")) end
     steps = length(0:dt:t)
     pa_k.work_vector .= state0
     initial_args = pa_k.work_vector
 
-    take_time_step! = take_krylov_time_step_function(H, -1.0im * dt, pa_k)
+    take_time_step! = take_krylov_time_step_function(H, -1.0im * dt, pa_k; alg = krylov_alg)
     time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
         
     if isa(out, Nothing)
@@ -50,9 +51,13 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
-function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::PA_krylov)
+function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::PA_krylov; alg = :lancoz)
     function take_time_step!(state)
-        lanczos!(pa_k.ks, H, state)
+        if alg == :lancoz
+            lanczos!(pa_k.ks, H, state)
+        elseif alg == :arnoldi
+            arnoldi!(pa_k.ks, H, state)
+        end
         expv!(state, dt, pa_k.ks; pa_k.cache)
         # normalize!(state)
         return state

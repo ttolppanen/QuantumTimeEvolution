@@ -13,6 +13,7 @@ function saveplot(pl, name)
 end
 
 include("tests/twoqubitstest.jl")
+include("tests/arnolditest.jl")
 include("tests/bosonstacktest.jl")
 include("tests/trotterodertest.jl")
 include("tests/savebeforeaftertest.jl")

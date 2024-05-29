@@ -89,4 +89,5 @@ function diss_deco_effect!(state::AbstractVector{<:Number}, operators::Vector{<:
     if norm(state) < rand()
         apply_diss_deco!(state, operators)
     end
+    return state
 end

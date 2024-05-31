@@ -22,7 +22,7 @@
     n = nall(d, L)
     obs(state) = expval(state, n)
     r_f() = krylovevolve(state, H, dt, t, k, obs; effect!, krylov_alg = :arnoldi)
-    r = solvetrajectories(r_f, 1000)
+    r = solvetrajectories(r_f, 100)
 
     function traj_mean(result)
         out = zeros(size(result[1]))
@@ -60,7 +60,7 @@ end
     n = singlesite_n(d, L, 1)
     obs(state) = expval(state, n)
     r_f() = krylovevolve(state, H, dt, t, k, obs; effect!, krylov_alg = :arnoldi)
-    r = solvetrajectories(r_f, 1000)
+    r = solvetrajectories(r_f, 100)
 
     function traj_mean(result)
         out = zeros(size(result[1]))
@@ -101,7 +101,7 @@ end
     ns = [singlesite_n(d, L, i) for i in 1:L]
     obs = [((state) -> expval(state, n)) for n in ns]
     r_f() = krylovevolve(state, H, dt, t, k, obs...; effect!, krylov_alg = :arnoldi)
-    r = solvetrajectories(r_f, 100)
+    r = solvetrajectories(r_f, 4000)
 
     function traj_mean(result)
         out = zeros(size(result[1]))

@@ -81,8 +81,8 @@ end
 # this refers to the result in FIG. 4 of PHYSICAL REVIEW RESEARCH 5, 023121 (2023)
 @testset "Paper Comparison" begin
     d = 4; L = 4;
-    dt = 0.2; t = 80;
-    k = 6
+    dt = 0.2; t = 80 * 2 * pi;
+    k = 10
     state = bosonstack(3, L, 2)
     J = 20
     U = 230 / J

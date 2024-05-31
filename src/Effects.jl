@@ -86,7 +86,7 @@ function random_measurement_random_feedback!(state::AbstractVector{<:Number}, ms
 end
 
 function diss_deco_effect!(state::AbstractVector{<:Number}, operators::Vector{<:AbstractMatrix})
-    if norm(state) < rand()
+    if norm(state)^2 < rand() #norm^2 = <psi|psi>.
         apply_diss_deco!(state, operators)
     end
     return state

@@ -51,14 +51,17 @@ function krylovevolve(state0::AbstractVector{<:Number}, H::AbstractMatrix{<:Numb
     return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
-function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::PA_krylov; alg = :lancoz)
+function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, pa_k::PA_krylov; kwargs...)
+    return take_krylov_time_step_function(H, dt, pa_k.ks, pa_k.cache; kwargs...)
+end
+function take_krylov_time_step_function(H::AbstractMatrix{<:Number}, dt, ks::KrylovSubspace, ks_cache::ExpvCache; alg = :lancoz)
     function take_time_step!(state)
         if alg == :lancoz
-            lanczos!(pa_k.ks, H, state)
+            lanczos!(ks, H, state)
         elseif alg == :arnoldi
-            arnoldi!(pa_k.ks, H, state)
+            arnoldi!(ks, H, state)
         end
-        expv!(state, dt, pa_k.ks; pa_k.cache)
+        expv!(state, dt, ks; cache = ks_cache)
         # normalize!(state)
         return state
     end

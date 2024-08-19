@@ -14,14 +14,9 @@
     for op in ops
         H .-= 1.0im / 2 .* op' * op
     end
-    effect!(state) = begin 
-        diss_deco_effect!(state, ops)
-        normalize!(state)
-        return state
-    end
     n = nall(d, L)
     obs(state) = expval(state, n)
-    r_f() = krylovevolve(state, H, dt, t, k, obs; effect!, krylov_alg = :arnoldi)
+    r_f() = krylovevolve(state, H, ops, dt, t, k, obs)
     r = solvetrajectories(r_f, 100)
 
     function traj_mean(result)
@@ -52,14 +47,9 @@ end
     for op in ops
         H .-= 1.0im / 2 .* op' * op
     end
-    effect!(state) = begin 
-        diss_deco_effect!(state, ops)
-        normalize!(state)
-        return state
-    end
     n = singlesite_n(d, L, 1)
     obs(state) = expval(state, n)
-    r_f() = krylovevolve(state, H, dt, t, k, obs; effect!, krylov_alg = :arnoldi)
+    r_f() = krylovevolve(state, H, ops, dt, t, k, obs)
     r = solvetrajectories(r_f, 100)
 
     function traj_mean(result)
@@ -81,7 +71,7 @@ end
 # this refers to the result in FIG. 4 of PHYSICAL REVIEW RESEARCH 5, 023121 (2023)
 @testset "Paper Comparison" begin
     d = 4; L = 4;
-    dt = 0.2; t = 80 * 2 * pi;
+    dt = 0.02; t = 80 * 2 * pi;
     k = 10
     state = bosonstack(3, L, 2)
     J = 20
@@ -93,15 +83,10 @@ end
     for op in ops
         H .-= 1.0im / 2 .* op' * op
     end
-    effect!(state) = begin 
-        diss_deco_effect!(state, ops)
-        normalize!(state)
-        return state
-    end
     ns = [singlesite_n(d, L, i) for i in 1:L]
     obs = [((state) -> expval(state, n)) for n in ns]
-    r_f() = krylovevolve(state, H, dt, t, k, obs...; effect!, krylov_alg = :arnoldi)
-    r = solvetrajectories(r_f, 100)
+    r_f() = krylovevolve(state, H, ops, dt, t, k, obs...)
+    r = solvetrajectories(r_f, 100; paral = :threads)
 
     function traj_mean(result)
         out = zeros(size(result[1]))

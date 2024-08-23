@@ -6,7 +6,6 @@ export random_measurement_function
 export random_measurement!
 export random_measurement_feedback!
 export random_measurement_random_feedback!
-export diss_deco_effect!
 
 StateType = Union{AbstractVector{<:Number}, MPS}
 MsrOpType = Union{MsrOpMatrixType, MsrOpITensorType}
@@ -81,13 +80,6 @@ function random_measurement_random_feedback!(state::AbstractVector{<:Number}, ms
                 normalize!(state)
             end
         end
-    end
-    return state
-end
-
-function diss_deco_effect!(state::AbstractVector{<:Number}, operators::Vector{<:AbstractMatrix})
-    if norm(state)^2 < rand() #norm^2 = <psi|psi>.
-        apply_diss_deco!(state, operators)
     end
     return state
 end

@@ -124,6 +124,72 @@ end
     @test true
 end
 
+@testset "Diff Eq Solved Data Comparison in Subspace" begin
+    d = 3; L = 3;
+    dt = 0.1; t = 100;
+    k = 6
+    indices = total_boson_number_subspace_indices(d, L)
+    ranges, perm_mat = total_boson_number_subspace_tools(d, L)
+    state = bosonstack(2, L, 1)
+    initial_id = find_subspace(state, indices)
+    state = subspace_split(state, ranges, perm_mat)
+    w = 2; U = 13
+    H = bosehubbard(d, L; w, U)
+    gamma = 0.004; kappa = 0.02
+    diss_op = [sqrt(gamma) * singlesite_a(d, L, i) for i in 1:L]
+    deco_op = [sqrt(kappa) * singlesite_n(d, L, i) for i in 1:L]
+    ops = vcat(diss_op, deco_op)
+    for op in ops
+        H .-= 1.0im / 2 .* op' * op
+    end
+    H = subspace_split(H, ranges, perm_mat)
+    a_relations = [-1 for _ in eachindex(ranges)]
+    a_relations[1] = 0
+    diss_op = [subspace_split(op, ranges, perm_mat, a_relations) for op in diss_op]
+    deco_op = [subspace_split(op, ranges, perm_mat) for op in deco_op]
+    n1 = subspace_split(singlesite_n(d, L, 1), ranges, perm_mat)
+    n2 = subspace_split(singlesite_n(d, L, 2), ranges, perm_mat)
+    n3 = subspace_split(singlesite_n(d, L, 3), ranges, perm_mat)
+    n_tot = subspace_split(nall(d, L), ranges, perm_mat)
+    obs = [(state, id) -> expval(state[id], n1[id]), 
+        (state, id) -> expval(state[id], n2[id]), 
+        (state, id) -> expval(state[id], n3[id]), 
+        (state, id) -> expval(state[id], n_tot[id])]
+    r_f() = krylovevolve(state, initial_id, H, diss_op, deco_op, dt, t, k, obs...)
+    r = solvetrajectories(r_f, 5000; paral = :threads)
+
+    function traj_mean(result)
+        out = zeros(size(result[1]))
+        for traj in result
+            out .+= traj
+        end
+        return out ./ length(result)
+    end
+    
+    r = traj_mean(r)
+
+    # data from solving the master equation with DifferentialEquations package.
+    data = load(joinpath(@__DIR__, "diss_deco_test_data.jld2"), "data")
+
+    x_t = 0:dt:t
+    pl = plot(x_t, r[1, :], 
+    title = "comparison to data solved from the master /n 
+    equation by solving the differential equation /n for subspace case.", 
+    xlabel = "t", 
+    label = "n1",
+    dpi = 300)
+    plot!(pl, x_t, r[2, :], label = "n2")
+    plot!(pl, x_t, r[3, :], label = "n3")
+    plot!(pl, x_t, r[4, :], label = "n_tot")
+
+    plot!(pl, data.t, data.n1, label = "n1 - diff eq", linestyle=:dashdot)
+    plot!(pl, data.t, data.n2, label = "n2 - diff eq", linestyle=:dashdot)
+    plot!(pl, data.t, data.n3, label = "n3 - diff eq", linestyle=:dashdot)
+    plot!(pl, data.t, data.ntot, label = "n_tot - diff eq", linestyle=:dashdot)
+    saveplot(pl, "diss deco - diff eq comparison subspace")
+    @test true
+end
+
 # # this refers to the result in FIG. 4 of PHYSICAL REVIEW RESEARCH 5, 023121 (2023)
 # @testset "Paper Comparison" begin
 #     d = 4; L = 4;

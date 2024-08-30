@@ -33,12 +33,11 @@ struct PA_krylov_sub_dd
     end
 end
 
-function krylovevolve(state0, initial_subspace_id, H, diss_op, deco_op, 
-                      dt::Real, t::Real, k::Integer, observables...; kwargs...)
+function krylovevolve(state0, initial_subspace_id::Integer, H, diss_op, deco_op, dt::Real, t::Real, k::Integer, observables...; kwargs...)
     pa_k = PA_krylov_sub_dd(state0, k)
     return krylovevolve(state0, initial_subspace_id, H, diss_op, deco_op, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0, initial_subspace_id::Integer, H, diss_op, deco_op, 
+function krylovevolve(state0, initial_subspace_id::Integer, H, diss_op, deco_op,
                       dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub_dd, observables...;
                       effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
     
@@ -58,7 +57,7 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, diss_op, deco_op,
     return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
-function take_krylov_sub_dd_time_step_function(H::AbstractMatrix{<:Number}, diss_op, deco_op, dt, pa_k::PA_krylov_sub_dd)
+function take_krylov_sub_dd_time_step_function(H, diss_op, deco_op, dt, pa_k::PA_krylov_sub_dd)
     krylov_subspace_time_step! = take_krylov_time_step_subspace_function(H, dt, pa_k.ks, pa_k.cache; alg = :arnoldi)
 
     take_time_step! = @closure((state, id) -> begin

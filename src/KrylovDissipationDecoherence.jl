@@ -56,7 +56,7 @@ function take_krylov_dd_time_step_function(H::AbstractMatrix{<:Number}, dd_op::V
 
     function take_time_step!(state)
         pa_k.prev_work_vector .= state
-        state .= krylov_time_step!(state)
+        krylov_time_step!(state)
         if norm(state)^2 < rand() #norm^2 = <psi|psi>.
             apply_diss_deco!(pa_k.prev_work_vector, dd_op)
             state .= pa_k.prev_work_vector

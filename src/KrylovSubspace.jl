@@ -57,14 +57,17 @@ function krylovevolve(state0, initial_subspace_id::Integer, H, dt::Real, t::Real
     return timeevolve!(initial_args, time_step_funcs, steps, out, observables...; save_only_last) 
 end
 
-function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{ComplexF64, Int64}}, dt::ComplexF64, pa_k::PA_krylov_sub; alg = :lancoz)
+function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{ComplexF64, Int64}}, dt::ComplexF64, pa_k::PA_krylov_sub; kwargs...)
+    return take_krylov_time_step_subspace_function(H, dt, pa_k.ks, pa_k.cache; alg = :lancoz)
+end
+function take_krylov_time_step_subspace_function(H::Vector{SparseMatrixCSC{ComplexF64, Int64}}, dt::ComplexF64, ks::Vector{KrylovSubspace}, ks_cache::ExpvCache; alg = :lancoz)
     take_time_step! = @closure((state, id) -> begin
         if alg == :lancoz
-            lanczos!(pa_k.ks[id], H[id], state[id])
+            lanczos!(ks[id], H[id], state[id])
         elseif alg == :arnoldi
-            arnoldi!(pa_k.ks[id], H[id], state[id])
+            arnoldi!(ks[id], H[id], state[id])
         end
-        expv!(state[id], dt, pa_k.ks[id]; pa_k.cache)
+        expv!(state[id], dt, ks[id]; cache = ks_cache)
         # normalize!(state[id])
         return state, id
     end)

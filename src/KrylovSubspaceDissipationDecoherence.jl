@@ -33,12 +33,12 @@ struct PA_krylov_sub_dd
     end
 end
 
-function krylovevolve(state0, initial_subspace_id, H::AbstractMatrix{<:Number}, diss_op::Vector{<:AbstractMatrix}, deco_op::Vector{<:AbstractMatrix}, 
+function krylovevolve(state0, initial_subspace_id, H, diss_op, deco_op, 
                       dt::Real, t::Real, k::Integer, observables...; kwargs...)
     pa_k = PA_krylov_sub_dd(state0, k)
     return krylovevolve(state0, initial_subspace_id, H, diss_op, deco_op, dt, t, k, pa_k, observables...; kwargs...)
 end
-function krylovevolve(state0, initial_subspace_id::Integer, H::AbstractMatrix{<:Number}, diss_op::Vector{<:AbstractMatrix}, deco_op::Vector{<:AbstractMatrix}, 
+function krylovevolve(state0, initial_subspace_id::Integer, H, diss_op, deco_op, 
                       dt::Real, t::Real, k::Integer, pa_k::PA_krylov_sub_dd, observables...;
                       effect! = nothing, save_before_effect::Bool = false, save_only_last::Bool = false, out = nothing)
     
@@ -49,7 +49,7 @@ function krylovevolve(state0, initial_subspace_id::Integer, H::AbstractMatrix{<:
     end
     initial_args = (pa_k.work_vector, initial_subspace_id)
 
-    take_time_step! = take_krylov_sub_dd_time_step_function(H, dd_op, -1.0im * dt, pa_k)
+    take_time_step! = take_krylov_sub_dd_time_step_function(H, diss_op, deco_op, -1.0im * dt, pa_k)
     time_step_funcs = make_time_step_list(take_time_step!, effect!, save_before_effect) # defined in TimeEvolve.jl
         
     if isa(out, Nothing)
@@ -61,15 +61,15 @@ end
 function take_krylov_sub_dd_time_step_function(H::AbstractMatrix{<:Number}, diss_op, deco_op, dt, pa_k::PA_krylov_sub_dd)
     krylov_subspace_time_step! = take_krylov_time_step_subspace_function(H, dt, pa_k.ks, pa_k.cache; alg = :arnoldi)
 
-    take_time_step! = @closure(state, id) -> begin
+    take_time_step! = @closure((state, id) -> begin
         pa_k.prev_work_vector[id] .= state[id]
         state, id = krylov_subspace_time_step!(state, id)
         if norm(state[id])^2 < rand() #norm^2 = <psi|psi>.
-            apply_diss_deco!(pa_k.prev_work_vector, id, diss_op, deco_op; normalize = false)
-            state .= pa_k.prev_work_vector
+            id, result = apply_diss_deco!(pa_k.prev_work_vector, id, diss_op, deco_op; normalize = false)
+            state[id] .= pa_k.prev_work_vector[id]
         end
-        normalize!(state)
-        return state
-    end
+        normalize!(state[id])
+        return state, id
+    end)
     return take_time_step!
 end

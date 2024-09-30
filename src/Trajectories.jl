@@ -34,7 +34,7 @@ function solvetrajectories(f::Function, traj::Integer, pa_args, pa_out; paral::S
 end
 
 function solve_traj_paral_pre_alloc(f, traj, pa_args, pa_out)
-    @sync for (traj_chunk, _) in chunks(1:traj, Threads.nthreads())
+    @sync for traj_chunk in collect(chunks(1:traj; n = Threads.nthreads()))
         Threads.@spawn begin
             args = take!(pa_args)
             for i in traj_chunk

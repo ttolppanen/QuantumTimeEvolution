@@ -18,7 +18,7 @@
     n = nall(d, L)
     obs(state) = expval(state, n)
     r_f() = krylovevolve(state, H, ops, dt, t, k, obs)
-    r = solvetrajectories(r_f, 100)
+    r = solvetrajectories(r_f, 10000; paral = :threads)
 
     function traj_mean(result)
         out = zeros(size(result[1]))

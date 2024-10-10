@@ -16,6 +16,7 @@ include("TimeEvolve.jl")
 
 #export
 include("Exact.jl")
+include("ExactDissipationDecoherence.jl")
 include("ExactSubspace.jl")
 include("Krylov.jl")
 include("KrylovDissipationDecoherence.jl")

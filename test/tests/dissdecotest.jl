@@ -2,6 +2,7 @@
 # using QuantumOperators
 # using Plots
 # using JLD2
+# using Random
 
 @testset "Dissipation and Decoherence" begin
 
@@ -67,6 +68,47 @@ end
     pl = plot(x_t, r[1, :], title = "two qubit decoherence", xlabel = "t", ylabel = "n_all", ylims = [0, 1.0])
     saveplot(pl, "diss deco - two qubit decoherence")
     @test true
+end
+
+@testset "Two qubit exact vs krylov" begin
+    d = 2; L = 2;
+    dt = 0.02; t = 10;
+    k = 6
+    state = onezero(d, L)
+    H = bosehubbard(d, L)
+    ops = [rand() * singlesite_a(d, L, 1), rand() * singlesite_n(d, L, 2)]
+    for op in ops
+        H .-= 1.0im / 2 .* op' * op
+    end
+    U = exp(-1.0im * Matrix(H) * dt)
+    n = singlesite_n(d, L, 1)
+    obs(state) = expval(state, n)
+
+    r_f_exact() = exactevolve(state, U, ops, dt, t, obs)
+    r_f_krylov() = krylovevolve(state, H, ops, dt, t, k, obs)
+    
+    rng_seed = 123
+    Random.seed!(rng_seed) # Makes the rng the same
+    r_e = solvetrajectories(r_f_exact, 100)
+    Random.seed!(rng_seed) # Makes the rng the same
+    r_k = solvetrajectories(r_f_krylov, 100)
+
+    function traj_mean(result)
+        out = zeros(size(result[1]))
+        for traj in result
+            out .+= traj
+        end
+        return out ./ length(result)
+    end
+    
+    r_e = traj_mean(r_e)
+    r_k = traj_mean(r_k)
+
+    x_t = 0:dt:t
+    pl = plot(x_t, r_e[1, :], title = "two qubit exact vs krylov", xlabel = "t", ylabel = "n_all", ylims = [0, 1.0], label = "exact")
+    plot!(pl, x_t, r_k[1, :], label = "krylov", ls = :dash)
+    saveplot(pl, "diss deco - exact vs krylov")
+    @test max((abs.(r_e[1, :] .- r_k[1, :]))...) < 10^-14
 end
 
 @testset "Diff Eq Solved Data Comparison" begin

@@ -1,7 +1,7 @@
 # using SparseArrays
 # using QuantumOperators
 
-export exactevolve
+export PA_exact_dd
 
 # state0 : initial state;
 # H : the Hamiltonian;

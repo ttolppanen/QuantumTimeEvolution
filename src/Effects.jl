@@ -122,7 +122,7 @@ function periodic_sbspc_msr_feedback!_function(msr_op::Vector, dt, msr_rate, fee
 
     out(state, subspace_id) = begin
         if msr_rate == 0.0 # if we do not do measurement
-            return state
+            return state, subspace_id::Int64
         end
         time[1] += dt
         if time[1] < 1 / msr_rate # if it has not passed period amount of time

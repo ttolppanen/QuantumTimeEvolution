@@ -8,8 +8,13 @@ ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 ExponentialUtilities = "d4d017d3-3776-5f7e-afef-a10c40355c18"
 FastClosures = "9aa1b823-49e4-5ca5-8b0f-3971ec8bab6a"
+ITensorMPS = "0d1a4710-d33b-49a5-8f18-73bdf49b47e2"
 ITensors = "9136182c-28ba-11e9-034c-db9fb085ebd5"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 QuantumOperators = "c0e07f3f-1bc3-43ad-95cf-312e5bf06829"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[compat]
+ITensorMPS = "0.3.20"
+ITensors = "0.9.10"

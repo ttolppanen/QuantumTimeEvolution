@@ -3,6 +3,7 @@ using Plots
 using SparseArrays
 using LinearAlgebra
 using ITensors
+using ITensorMPS
 using Random
 using QuantumStates
 using QuantumOperators

@@ -4,6 +4,7 @@ using Distributed
 using SparseArrays
 using LinearAlgebra
 using ITensors
+using ITensorMPS
 using StaticArrays
 using QuantumOperators
 using ExponentialUtilities
